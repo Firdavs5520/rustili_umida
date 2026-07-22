@@ -1,0 +1,14 @@
+{
+  "name": "rus-tili-ustoz-portfolio",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Rus tili ustozlari uchun portfolio va shaxsiy kabinet.",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "engines": {
+    "node": ">=24.0.0"
+  }
+}
