@@ -64,20 +64,20 @@ leadForm?.addEventListener("submit", async (event) => {
     if (!response.ok) {
       throw new Error(data.error || "So'rov saqlanmadi.");
     }
-
-    leadForm.reset();
-    const copied = await copiedPromise;
-    const telegramWindow = window.open(TELEGRAM_URL, "_blank", "noopener");
-    const hint = copied
-      ? "Xabar matni nusxalandi. Telegram ochilganda chatga joylab yuboring."
-      : "Telegram ochildi. Iltimos, forma ma'lumotlarini chatga yozib yuboring.";
-
-    statusLine.innerHTML = `Rahmat! So'rovingiz saqlandi. ${hint} <a href="${TELEGRAM_URL}" target="_blank" rel="noopener">Telegramni ochish</a>`;
-    if (!telegramWindow && copied) {
-      statusLine.innerHTML = `Rahmat! So'rovingiz saqlandi. Xabar matni nusxalandi. <a href="${TELEGRAM_URL}" target="_blank" rel="noopener">Telegramni ochish</a>`;
-    }
   } catch (error) {
-    statusLine.textContent = error.message;
+    console.warn(error.message);
+  }
+
+  leadForm.reset();
+  const copied = await copiedPromise;
+  const telegramWindow = window.open(TELEGRAM_URL, "_blank", "noopener");
+  const hint = copied
+    ? "Xabar matni nusxalandi. Telegram ochilganda chatga joylab yuboring."
+    : "Telegram ochildi. Iltimos, forma ma'lumotlarini chatga yozib yuboring.";
+
+  statusLine.innerHTML = `Rahmat! ${hint} <a href="${TELEGRAM_URL}" target="_blank" rel="noopener">Telegramni ochish</a>`;
+  if (!telegramWindow && copied) {
+    statusLine.innerHTML = `Rahmat! Xabar matni nusxalandi. <a href="${TELEGRAM_URL}" target="_blank" rel="noopener">Telegramni ochish</a>`;
   }
 });
 
