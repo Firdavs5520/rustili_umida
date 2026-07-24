@@ -5,6 +5,8 @@ const sectionNavLinks = Array.from(navLinks).filter((link) => link.hash);
 const leadForm = document.querySelector("#leadForm");
 const statusLine = document.querySelector(".form-status");
 const goalSelect = leadForm?.querySelector('select[name="goal"]');
+const leadNameInput = leadForm?.querySelector('input[name="name"]');
+const leadPhoneInput = leadForm?.querySelector('input[name="phone"]');
 const pageLoader = document.querySelector("[data-page-loader]");
 const loaderStage = document.querySelector(".loader-stage");
 const loaderKicker = document.querySelector("[data-loader-kicker]");
@@ -15,6 +17,7 @@ const languageLoader = document.querySelector("[data-language-loader]");
 const languageLoaderText = document.querySelector("[data-language-loader-text]");
 const TELEGRAM_URL = "https://t.me/rustili_umiida";
 const LANG_STORAGE_KEY = "umida-rus-tili-lang";
+const CABINET_STORAGE_KEY = "umida-rus-tili-cabinet";
 const INTRO_MIN_DURATION = 6900;
 const LOADER_PHRASE_INTERVAL = 2300;
 const LANGUAGE_TRANSITION_IN = 360;
@@ -147,7 +150,7 @@ const translations = {
       namePlaceholder: "Ismingiz",
       phonePlaceholder: "+998 ...",
       messagePlaceholder: "Sinf, maqsad va qulay vaqtni yozing",
-      submit: "Telegramga so'rov yuborish",
+      submit: "So'rov yuborish",
       saving: "So'rov saqlanmoqda...",
       error: "So'rov saqlanmadi.",
       thanks: "Rahmat!",
@@ -294,7 +297,7 @@ const translations = {
       namePlaceholder: "Ваше имя",
       phonePlaceholder: "+998 ...",
       messagePlaceholder: "Напишите класс, цель и удобное время",
-      submit: "Отправить заявку в Telegram",
+      submit: "Отправить заявку",
       saving: "Заявка сохраняется...",
       error: "Заявка не сохранилась.",
       thanks: "Спасибо!",
@@ -398,17 +401,37 @@ document.addEventListener("keydown", (event) => {
   menuToggle?.focus();
 });
 
+leadNameInput?.addEventListener("input", () => {
+  leadNameInput.value = formatPersonName(leadNameInput.value);
+});
+
+leadPhoneInput?.addEventListener("input", () => {
+  leadPhoneInput.value = formatUzPhone(leadPhoneInput.value);
+});
+
 leadForm?.addEventListener("submit", async (event) => {
   event.preventDefault();
   statusLine.textContent = t("form.saving");
 
-  const payload = Object.fromEntries(new FormData(leadForm).entries());
+  let payload;
+  try {
+    payload = normalizeLeadPayload(Object.fromEntries(new FormData(leadForm).entries()));
+  } catch (error) {
+    statusLine.textContent = error.message;
+    return;
+  }
+
   const localizedPayload = {
     ...payload,
     goal: getGoalLabel(payload.goal) || payload.goal
   };
   const telegramMessage = buildTelegramMessage(localizedPayload);
   const copiedPromise = copyToClipboard(telegramMessage);
+  let savedLead = {
+    ...localizedPayload,
+    status: "new",
+    created_at: new Date().toISOString()
+  };
 
   try {
     const response = await fetch("/api/leads", {
@@ -421,10 +444,12 @@ leadForm?.addEventListener("submit", async (event) => {
     if (!response.ok) {
       throw new Error(data.error || t("form.error"));
     }
+    savedLead = data.lead || savedLead;
   } catch (error) {
     console.warn(error.message);
   }
 
+  saveLeadToCabinetCache(savedLead);
   leadForm.reset();
   const copied = await copiedPromise;
   const telegramWindow = window.open(TELEGRAM_URL, "_blank", "noopener");
@@ -604,6 +629,87 @@ function buildTelegramMessage(payload) {
     `${t("telegram.goal")}: ${payload.goal || "-"}`,
     `${t("telegram.message")}: ${payload.message || "-"}`
   ].join("\n");
+}
+
+function normalizeLeadPayload(payload) {
+  const name = formatPersonName(payload.name).trim();
+  const phone = normalizeUzPhone(payload.phone);
+  if (!name) throw new Error("Ism familiyani kiriting.");
+
+  return {
+    ...payload,
+    name,
+    phone
+  };
+}
+
+function formatPersonName(value) {
+  return String(value || "")
+    .toLowerCase()
+    .replace(/\s+/g, " ")
+    .replace(/(^|[\s-])([a-z])/g, (_, space, letter) => `${space}${letter.toUpperCase()}`);
+}
+
+function formatUzPhone(value) {
+  let digits = String(value || "").replace(/\D/g, "");
+  if (digits.startsWith("998")) digits = digits.slice(3);
+  if (digits.startsWith("8") && digits.length > 9) digits = digits.slice(1);
+  if (digits.startsWith("0") && digits.length > 9) digits = digits.slice(1);
+
+  const local = digits.slice(0, 9);
+  if (!local) return "";
+
+  const parts = ["+998"];
+  if (local.length) parts.push(local.slice(0, 2));
+  if (local.length > 2) parts.push(local.slice(2, 5));
+  if (local.length > 5) parts.push(local.slice(5, 7));
+  if (local.length > 7) parts.push(local.slice(7, 9));
+  return parts.filter(Boolean).join(" ");
+}
+
+function normalizeUzPhone(value) {
+  const phone = formatUzPhone(value);
+  if (!/^998\d{9}$/.test(phone.replace(/\D/g, ""))) {
+    throw new Error("Telefonni +998 90 123 45 67 ko'rinishida kiriting.");
+  }
+  return phone;
+}
+
+function saveLeadToCabinetCache(lead) {
+  try {
+    const store = JSON.parse(localStorage.getItem(CABINET_STORAGE_KEY) || "{}");
+    const leads = Array.isArray(store.leads) ? store.leads : [];
+    const highestId = Math.max(0, ...leads.map((item) => Number(item.id || 0)));
+    const nextId = Math.max(Number(store.nextIds?.leads || 1), highestId + 1);
+    const id = Number(lead.id || 0) || nextId;
+
+    const nextStore = {
+      ...store,
+      nextIds: {
+        ...(store.nextIds || {}),
+        leads: Math.max(id + 1, nextId + 1)
+      },
+      students: Array.isArray(store.students) ? store.students : [],
+      lessons: Array.isArray(store.lessons) ? store.lessons : [],
+      payments: Array.isArray(store.payments) ? store.payments : [],
+      leads: [
+        {
+          id,
+          name: lead.name || "",
+          phone: lead.phone || "",
+          goal: lead.goal || "",
+          message: lead.message || "",
+          status: lead.status || "new",
+          created_at: lead.created_at || new Date().toISOString()
+        },
+        ...leads.filter((item) => String(item.id) !== String(id))
+      ]
+    };
+
+    localStorage.setItem(CABINET_STORAGE_KEY, JSON.stringify(nextStore));
+  } catch {
+    // Browser storage can be unavailable in private mode.
+  }
 }
 
 async function copyToClipboard(text) {

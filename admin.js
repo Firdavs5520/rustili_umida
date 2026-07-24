@@ -706,6 +706,8 @@ function handleLocalFilter(event) {
 function enhanceAdminControls(root = document) {
   $$("select:not([data-select-enhanced])", root).forEach(enhanceCustomSelect);
   $$("[data-date-input], [data-time-input], [data-datetime-input]", root).forEach(enhanceDateTimeInput);
+  $$('input[name="full_name"]:not([data-name-enhanced]), input[name="name"]:not([data-name-enhanced])', root).forEach(enhanceNameInput);
+  $$('input[name="phone"]:not([data-phone-enhanced])', root).forEach(enhancePhoneInput);
 }
 
 function enhanceCustomSelect(select) {
@@ -799,6 +801,20 @@ function enhanceDateTimeInput(input) {
   });
 }
 
+function enhanceNameInput(input) {
+  input.dataset.nameEnhanced = "true";
+  input.addEventListener("input", () => {
+    input.value = formatPersonName(input.value);
+  });
+}
+
+function enhancePhoneInput(input) {
+  input.dataset.phoneEnhanced = "true";
+  input.addEventListener("input", () => {
+    input.value = formatUzPhone(input.value);
+  });
+}
+
 function maskDateTimeValue(value, kind) {
   const digits = String(value || "").replace(/\D/g, "");
   if (kind === "time") return joinParts(digits.slice(0, 4), [2], ":");
@@ -815,6 +831,30 @@ function joinParts(value, splitAt, separator) {
   });
   if (value.length > start) parts.push(value.slice(start));
   return parts.join(separator);
+}
+
+function formatPersonName(value) {
+  return String(value || "")
+    .toLowerCase()
+    .replace(/\s+/g, " ")
+    .replace(/(^|[\s-])([a-z])/g, (_, space, letter) => `${space}${letter.toUpperCase()}`);
+}
+
+function formatUzPhone(value) {
+  let digits = String(value || "").replace(/\D/g, "");
+  if (digits.startsWith("998")) digits = digits.slice(3);
+  if (digits.startsWith("8") && digits.length > 9) digits = digits.slice(1);
+  if (digits.startsWith("0") && digits.length > 9) digits = digits.slice(1);
+
+  const local = digits.slice(0, 9);
+  if (!local) return "";
+
+  const parts = ["+998"];
+  if (local.length) parts.push(local.slice(0, 2));
+  if (local.length > 2) parts.push(local.slice(2, 5));
+  if (local.length > 5) parts.push(local.slice(5, 7));
+  if (local.length > 7) parts.push(local.slice(7, 9));
+  return parts.filter(Boolean).join(" ");
 }
 
 function studentRow(student) {
@@ -968,6 +1008,10 @@ function fillForm(form, data) {
       field.value = dateTimeInputDisplay(value);
     } else if (field.dataset?.dateInput !== undefined) {
       field.value = dateInputDisplay(value);
+    } else if (key === "full_name" || key === "name") {
+      field.value = formatPersonName(value);
+    } else if (key === "phone") {
+      field.value = formatUzPhone(value);
     } else {
       field.value = value ?? "";
     }
@@ -1511,6 +1555,21 @@ async function handleClientApi(url, options = {}) {
     return { ok: true };
   }
 
+  if (pathname === "/api/leads" && method === "POST") {
+    const lead = {
+      id: nextClientId(store, "leads"),
+      name: formatPersonName(body.name || ""),
+      phone: formatUzPhone(body.phone || ""),
+      goal: body.goal || "",
+      message: body.message || "",
+      status: "new",
+      created_at: timestamp
+    };
+    store.leads.unshift(lead);
+    writeCabinetStore(store);
+    return { ok: true, lead };
+  }
+
   const leadMatch = pathname.match(/^\/api\/leads\/(\d+)$/);
   if (leadMatch && method === "PUT") {
     updateClientItem(store, "leads", Number(leadMatch[1]), { status: body.status || "contacted" });
@@ -1570,12 +1629,16 @@ async function fetchJson(url, options = {}) {
 
 function isClientCabinetPath(url) {
   const { pathname } = new URL(url, window.location.origin);
-  return /^\/api\/(?:students|lessons|payments)(?:\/\d+)?$/.test(pathname)
+  return /^\/api\/(?:students|lessons|payments|leads)(?:\/\d+)?$/.test(pathname)
     || /^\/api\/leads\/\d+$/.test(pathname);
 }
 
 function formToJson(form) {
-  return JSON.stringify(Object.fromEntries(new FormData(form).entries()));
+  const data = Object.fromEntries(new FormData(form).entries());
+  if (data.full_name) data.full_name = formatPersonName(data.full_name).trim();
+  if (data.name) data.name = formatPersonName(data.name).trim();
+  if (data.phone) data.phone = formatUzPhone(data.phone);
+  return JSON.stringify(data);
 }
 
 function formatDateTime(value) {

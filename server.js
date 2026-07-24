@@ -3,6 +3,7 @@ const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
 const { DatabaseSync } = require("node:sqlite");
+const { formatPersonName, normalizeLead, normalizeUzPhone, notifyLead } = require("./lead-utils");
 
 const HOST = process.env.HOST || "127.0.0.1";
 const PORT = Number(process.env.PORT || 3000);
@@ -210,7 +211,8 @@ async function handleApi(req, res, url) {
   if (pathname === "/api/leads" && method === "POST") {
     const body = await readJson(req);
     const lead = createLead(body);
-    sendJson(res, 201, { lead });
+    const notifications = await notifyLead(lead);
+    sendJson(res, 201, { lead, notifications });
     return;
   }
 
@@ -561,14 +563,11 @@ function listLeads() {
 }
 
 function createLead(body) {
-  const name = requireText(body.name, "Ism", 120);
-  const phone = requireText(body.phone, "Telefon", 80);
-  const goal = clean(body.goal || "", 160);
-  const message = clean(body.message || "", 1000);
+  const data = normalizeLead(body);
   const result = db.prepare(`
     INSERT INTO leads (name, phone, goal, message, status, created_at)
     VALUES (?, ?, ?, ?, 'new', ?)
-  `).run(name, phone, goal, message, now());
+  `).run(data.name, data.phone, data.goal, data.message, now());
   return findById("leads", result.lastInsertRowid);
 }
 
@@ -587,8 +586,8 @@ function normalizeStudent(body) {
   }
 
   return {
-    full_name: requireText(body.full_name, "Ism", 160),
-    phone: requireText(body.phone, "Telefon", 80),
+    full_name: requireText(formatPersonName(body.full_name), "Ism", 160),
+    phone: normalizeUzPhone(body.phone),
     level: clean(body.level || "A1", 20) || "A1",
     goal: clean(body.goal || "", 300),
     status,
