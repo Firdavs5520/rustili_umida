@@ -1524,9 +1524,48 @@ td span {
 }
 
 .public-page .hero-portrait img {
+  position: relative;
+  z-index: 1;
+  display: block;
   aspect-ratio: 0.92 / 1;
   border: 0;
-  border-radius: 18px;
+  border-radius: 22px;
+  box-shadow:
+    0 22px 54px rgba(74, 0, 6, 0.22),
+    0 0 0 1px rgba(255, 246, 242, 0.46);
+  object-position: 50% 39%;
+}
+
+.public-page .premium-photo {
+  isolation: isolate;
+  padding: 10px;
+  border-radius: 30px;
+  background:
+    linear-gradient(135deg, rgba(255, 247, 244, 0.32), rgba(255, 247, 244, 0.06)),
+    rgba(111, 0, 7, 0.18);
+}
+
+.public-page .photo-rim {
+  position: absolute;
+  inset: -8px;
+  z-index: -1;
+  border: 1px solid rgba(255, 247, 244, 0.28);
+  border-radius: 34px;
+  background:
+    linear-gradient(145deg, rgba(255, 247, 244, 0.22), rgba(255, 247, 244, 0)),
+    rgba(130, 0, 8, 0.2);
+}
+
+.public-page .premium-photo::after {
+  content: "";
+  position: absolute;
+  inset: 10px;
+  z-index: 2;
+  border-radius: 22px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.24), transparent 34%),
+    linear-gradient(0deg, rgba(87, 0, 6, 0.22), transparent 34%);
+  pointer-events: none;
 }
 
 .public-page .hero-copy {
@@ -1660,17 +1699,58 @@ td span {
   transform: translateX(-50%) rotate(24deg);
 }
 
-.public-page .profile-tile img {
+.public-page .profile-media {
+  position: relative;
   width: 100%;
   aspect-ratio: 0.72 / 1;
-  object-fit: cover;
-  object-position: center;
-  border-radius: 14px;
+  overflow: hidden;
+  isolation: isolate;
+  border-radius: 18px;
+  background: #b6000c;
+  box-shadow:
+    0 22px 44px rgba(148, 8, 17, 0.15),
+    0 0 0 1px rgba(182, 0, 12, 0.08);
 }
 
-.public-page .profile-tile:nth-child(2) img,
-.public-page .profile-tile:nth-child(3) img {
-  object-position: center;
+.public-page .profile-media::before {
+  content: "";
+  position: absolute;
+  inset: 10px;
+  z-index: 2;
+  border: 1px solid rgba(255, 247, 244, 0.44);
+  border-radius: 12px;
+  pointer-events: none;
+}
+
+.public-page .profile-media::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background:
+    linear-gradient(180deg, transparent 42%, rgba(94, 0, 6, 0.22)),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.2), transparent 36%);
+  pointer-events: none;
+}
+
+.public-page .profile-media img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 42%;
+}
+
+.public-page .profile-media-teacher img {
+  object-position: 50% 36%;
+}
+
+.public-page .profile-media-school img {
+  object-position: 82% 50%;
+}
+
+.public-page .profile-media-exam img {
+  object-position: 55% 50%;
 }
 
 .public-page .profile-tile h3 {
@@ -1709,31 +1789,97 @@ td span {
 
 .public-page .product-card {
   display: grid;
+  width: 100%;
   justify-items: center;
   text-align: center;
 }
 
 .public-page .product-image {
+  --visual-url: url("/assets/hero-russian-lesson.png");
+  --visual-position: center;
+  --visual-size: cover;
+  --visual-scale: 1;
+  --visual-tint: linear-gradient(180deg, rgba(182, 0, 12, 0.06), rgba(108, 0, 7, 0.24));
+  position: relative;
   width: 100%;
   aspect-ratio: 0.92 / 1;
-  background-color: #b6000c;
-  background-position: center;
-  background-size: cover;
-  border-radius: 16px;
+  overflow: hidden;
+  isolation: isolate;
+  background:
+    linear-gradient(135deg, rgba(255, 247, 244, 0.42), rgba(255, 247, 244, 0)),
+    #b6000c;
+  border-radius: 18px;
+  box-shadow:
+    0 22px 44px rgba(148, 8, 17, 0.14),
+    0 0 0 1px rgba(182, 0, 12, 0.08);
 }
 
-.public-page .image-lesson,
-.public-page .image-writing {
-  background-image: url("/assets/hero-russian-lesson.png");
+.public-page .product-image::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background-image: var(--visual-tint), var(--visual-url);
+  background-position: center, var(--visual-position);
+  background-size: cover, var(--visual-size);
+  background-repeat: no-repeat;
+  transform: scale(var(--visual-scale));
+  transition:
+    transform 760ms cubic-bezier(0.16, 1, 0.3, 1),
+    filter 760ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.public-page .image-test,
-.public-page .image-online,
-.public-page .image-offline,
+.public-page .product-image::after {
+  content: "";
+  position: absolute;
+  inset: 10px;
+  z-index: 1;
+  border: 1px solid rgba(255, 247, 244, 0.34);
+  border-radius: 12px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.2), transparent 38%),
+    linear-gradient(0deg, rgba(96, 0, 7, 0.2), transparent 44%);
+  pointer-events: none;
+}
+
+.public-page .image-lesson {
+  --visual-position: 46% 76%;
+  --visual-size: 245%;
+  --visual-scale: 1.02;
+}
+
+.public-page .image-test {
+  --visual-position: 83% 46%;
+  --visual-size: 205%;
+  --visual-scale: 1.02;
+  --visual-tint: linear-gradient(180deg, rgba(182, 0, 12, 0.08), rgba(63, 0, 4, 0.18));
+}
+
+.public-page .image-online {
+  --visual-url: url("/assets/teacher-umida.png");
+  --visual-position: 50% 34%;
+  --visual-size: 118%;
+  --visual-scale: 1.01;
+  --visual-tint: linear-gradient(180deg, rgba(255, 245, 242, 0.08), rgba(88, 0, 6, 0.24));
+}
+
+.public-page .image-offline {
+  --visual-url: url("/assets/teacher-umida.png");
+  --visual-position: 50% 50%;
+  --visual-size: 110%;
+  --visual-tint: linear-gradient(180deg, rgba(255, 245, 242, 0.04), rgba(88, 0, 6, 0.2));
+}
+
 .public-page .image-group {
-  background-image:
-    linear-gradient(180deg, rgba(182, 0, 12, 0.12), rgba(182, 0, 12, 0.28)),
-    url("/assets/teacher-umida.png");
+  --visual-position: 92% 52%;
+  --visual-size: 172%;
+  --visual-scale: 1.01;
+}
+
+.public-page .image-writing {
+  --visual-position: 57% 78%;
+  --visual-size: 260%;
+  --visual-tint: linear-gradient(180deg, rgba(182, 0, 12, 0.04), rgba(69, 0, 5, 0.2));
 }
 
 .public-page .product-card h3 {
@@ -1963,8 +2109,9 @@ td span {
 }
 
 .public-page .hero-portrait img,
-.public-page .profile-tile img,
-.public-page .product-image {
+.public-page .profile-media img,
+.public-page .product-image,
+.public-page .product-image::before {
   transition:
     transform 620ms cubic-bezier(0.16, 1, 0.3, 1),
     filter 620ms cubic-bezier(0.16, 1, 0.3, 1),
@@ -1972,10 +2119,15 @@ td span {
 }
 
 .public-page .hero-portrait:hover img,
-.public-page .profile-tile:hover img,
+.public-page .profile-tile:hover .profile-media img,
 .public-page .product-card:hover .product-image {
   transform: translateY(-8px) scale(1.025);
   filter: saturate(1.06) contrast(1.02);
+}
+
+.public-page .product-card:hover .product-image::before {
+  transform: scale(calc(var(--visual-scale) + 0.05));
+  filter: saturate(1.08) contrast(1.03);
 }
 
 .public-page .profile-tile,
@@ -2126,12 +2278,17 @@ td span {
   }
 
   .public-page .hero-portrait:hover img,
-  .public-page .profile-tile:hover img,
+  .public-page .profile-tile:hover .profile-media img,
   .public-page .product-card:hover .product-image,
+  .public-page .product-card:hover .product-image::before,
   .public-page .profile-tile:hover,
   .public-page .product-card:hover,
   .public-page .lesson-feature-grid article:hover {
     transform: translateY(-4px);
+  }
+
+  .public-page .product-card:hover .product-image::before {
+    transform: scale(calc(var(--visual-scale) + 0.02));
   }
 }
 
