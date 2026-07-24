@@ -14,7 +14,8 @@ const languageLoader = document.querySelector("[data-language-loader]");
 const languageLoaderText = document.querySelector("[data-language-loader-text]");
 const TELEGRAM_URL = "https://t.me/rustili_umiida";
 const LANG_STORAGE_KEY = "umida-rus-tili-lang";
-const INTRO_MIN_DURATION = 2800;
+const INTRO_MIN_DURATION = 6900;
+const LOADER_PHRASE_INTERVAL = 1650;
 const LANGUAGE_TRANSITION_IN = 360;
 const LANGUAGE_TRANSITION_OUT = 620;
 const langButtons = document.querySelectorAll("[data-lang-switch]");
@@ -491,7 +492,7 @@ function startLoaderPhrases() {
   const interval = window.setInterval(() => {
     phraseIndex = (phraseIndex + 1) % phrases.length;
     setLoaderPhrase(phrases[phraseIndex], true);
-  }, 660);
+  }, LOADER_PHRASE_INTERVAL);
 
   return () => {
     window.clearInterval(interval);
