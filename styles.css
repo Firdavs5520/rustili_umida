@@ -1485,7 +1485,14 @@ td span {
     linear-gradient(180deg, rgba(255, 247, 245, 0.16), rgba(255, 247, 245, 0.06)),
     rgba(96, 0, 7, 0.22);
   box-shadow: 0 36px 90px rgba(66, 0, 5, 0.35);
-  animation: loaderStageIn 920ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation:
+    loaderStageIn 920ms cubic-bezier(0.16, 1, 0.3, 1) both,
+    loaderBreath 3600ms ease-in-out 980ms infinite;
+}
+
+.loader-stage > * {
+  position: relative;
+  z-index: 1;
 }
 
 .loader-stage::before {
@@ -1496,6 +1503,19 @@ td span {
   background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.28), transparent);
   transform: rotate(18deg) translateX(-140%);
   animation: loaderSweep 2600ms cubic-bezier(0.22, 1, 0.36, 1) 340ms both;
+}
+
+.loader-stage::after {
+  content: "";
+  position: absolute;
+  right: 34px;
+  bottom: 30px;
+  left: 34px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 247, 245, 0.54), transparent);
+  transform: scaleX(0.4);
+  transform-origin: center;
+  animation: loaderLinePulse 2400ms ease-in-out infinite;
 }
 
 .loader-mark,
@@ -1576,6 +1596,54 @@ td span {
   margin-top: 8px;
   font-size: clamp(1.85rem, 5vw, 2.8rem);
   line-height: 0.98;
+}
+
+.loader-stage [data-loader-title],
+.loader-phrase {
+  transition:
+    opacity 260ms ease,
+    transform 260ms cubic-bezier(0.16, 1, 0.3, 1),
+    filter 260ms ease;
+}
+
+.loader-stage [data-loader-title] {
+  display: grid;
+  place-items: center;
+  min-height: 2.1em;
+}
+
+.loader-phrase {
+  display: grid;
+  justify-items: center;
+  min-height: 90px;
+  margin-top: 16px;
+}
+
+.loader-phrase span {
+  color: #fff7f5;
+  font-size: clamp(2.55rem, 8vw, 4.45rem);
+  font-weight: 800;
+  line-height: 0.9;
+}
+
+.loader-phrase small {
+  max-width: 280px;
+  margin-top: 9px;
+  color: rgba(255, 247, 245, 0.74);
+  font-size: 0.84rem;
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.loader-stage.is-phrase-switching [data-loader-title],
+.loader-stage.is-phrase-switching .loader-phrase {
+  opacity: 0;
+  transform: translateY(-10px) scale(0.98);
+  filter: blur(6px);
+}
+
+.loader-stage.is-phrase-glow .loader-phrase span {
+  animation: phraseGlow 280ms ease both;
 }
 
 .loader-progress,
@@ -2494,6 +2562,28 @@ td span {
   }
 }
 
+@keyframes loaderBreath {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-6px) scale(1.012);
+  }
+}
+
+@keyframes loaderLinePulse {
+  0%,
+  100% {
+    opacity: 0.38;
+    transform: scaleX(0.38);
+  }
+  50% {
+    opacity: 0.9;
+    transform: scaleX(1);
+  }
+}
+
 @keyframes loaderMarkLeft {
   0%,
   100% {
@@ -2533,6 +2623,17 @@ td span {
   }
 }
 
+@keyframes phraseGlow {
+  from {
+    text-shadow: 0 0 0 rgba(255, 247, 245, 0);
+    transform: scale(0.985);
+  }
+  to {
+    text-shadow: 0 12px 34px rgba(255, 247, 245, 0.26);
+    transform: scale(1);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto !important;
@@ -2561,13 +2662,15 @@ td span {
 
   .loader-stage,
   .loader-stage::before,
+  .loader-stage::after,
   .loader-mark::before,
   .loader-mark::after,
   .language-loader-mark::before,
   .language-loader-mark::after,
   .loader-book span,
   .loader-progress span,
-  .language-loader-line span {
+  .language-loader-line span,
+  .loader-phrase span {
     animation-duration: 1800ms;
   }
 
@@ -2765,17 +2868,41 @@ td span {
 
 @media (max-width: 520px) {
   .loader-stage {
-    padding: 38px 24px 34px;
-    border-radius: 28px;
+    width: calc(100vw - 28px);
+    min-height: min(660px, calc(100svh - 36px));
+    align-content: center;
+    padding: 42px 24px 36px;
+    border-radius: 32px;
+    box-shadow: 0 34px 88px rgba(56, 0, 5, 0.4);
   }
 
   .loader-book {
-    width: 108px;
-    height: 40px;
+    width: 118px;
+    height: 44px;
   }
 
   .loader-stage strong {
-    font-size: 1.85rem;
+    min-height: 2.45em;
+    font-size: 2rem;
+  }
+
+  .loader-phrase {
+    min-height: 126px;
+    margin-top: 18px;
+  }
+
+  .loader-phrase span {
+    font-size: clamp(3rem, 15vw, 4.7rem);
+  }
+
+  .loader-phrase small {
+    max-width: 260px;
+    font-size: 0.92rem;
+  }
+
+  .loader-progress {
+    width: min(286px, 80vw);
+    margin-top: 32px;
   }
 
   .language-loader-card {

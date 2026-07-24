@@ -5,6 +5,11 @@ const leadForm = document.querySelector("#leadForm");
 const statusLine = document.querySelector(".form-status");
 const goalSelect = leadForm?.querySelector('select[name="goal"]');
 const pageLoader = document.querySelector("[data-page-loader]");
+const loaderStage = document.querySelector(".loader-stage");
+const loaderKicker = document.querySelector("[data-loader-kicker]");
+const loaderTitle = document.querySelector("[data-loader-title]");
+const loaderWord = document.querySelector("[data-loader-word]");
+const loaderCaption = document.querySelector("[data-loader-caption]");
 const languageLoader = document.querySelector("[data-language-loader]");
 const languageLoaderText = document.querySelector("[data-language-loader-text]");
 const TELEGRAM_URL = "https://t.me/rustili_umiida";
@@ -317,6 +322,20 @@ const goalOptions = [
   { value: "offline", uz: "Offline dars", ru: "Офлайн урок" },
   { value: "group", uz: "Guruhga yozilish", ru: "Запись в группу" }
 ];
+const loaderPhrases = {
+  uz: [
+    { kicker: "Umida Rus Tili", title: "Darslar ochilmoqda", word: "Grammatika", caption: "mavzular tayyorlanmoqda" },
+    { kicker: "Maqsadga qarab", title: "Reja tuzilmoqda", word: "Testlar", caption: "abituriyent tayyorgarligi ochilmoqda" },
+    { kicker: "Online va offline", title: "Format tanlanmoqda", word: "Dars vaqti", caption: "qulay tartib tayyorlanmoqda" },
+    { kicker: "Portfolio yuklanmoqda", title: "Ustoz sahifasi", word: "Natija", caption: "sahifa ishga tushmoqda" }
+  ],
+  ru: [
+    { kicker: "Русский с Умидой", title: "Уроки открываются", word: "Грамматика", caption: "темы готовятся" },
+    { kicker: "По цели ученика", title: "План собирается", word: "Тесты", caption: "подготовка к экзамену открывается" },
+    { kicker: "Онлайн и офлайн", title: "Формат выбирается", word: "Урок", caption: "удобный режим готовится" },
+    { kicker: "Портфолио загружается", title: "Страница учителя", word: "Результат", caption: "сайт запускается" }
+  ]
+};
 let currentLang = getSavedLanguage();
 let languageTransitionActive = false;
 
@@ -442,6 +461,7 @@ function setupIntroLoader() {
     return;
   }
 
+  const stopLoaderPhrases = startLoaderPhrases();
   const startedAt = performance.now();
   const hideLoader = () => {
     const elapsed = performance.now() - startedAt;
@@ -450,6 +470,7 @@ function setupIntroLoader() {
     window.setTimeout(() => {
       pageLoader.classList.add("is-done");
       document.body.classList.remove("is-loading");
+      stopLoaderPhrases();
     }, delay);
   };
 
@@ -458,6 +479,47 @@ function setupIntroLoader() {
   } else {
     window.addEventListener("load", hideLoader, { once: true });
   }
+}
+
+function startLoaderPhrases() {
+  if (!loaderTitle || !loaderWord || !loaderCaption) return () => {};
+
+  const phrases = loaderPhrases[currentLang] || loaderPhrases.uz;
+  let phraseIndex = 0;
+  setLoaderPhrase(phrases[phraseIndex], false);
+
+  const interval = window.setInterval(() => {
+    phraseIndex = (phraseIndex + 1) % phrases.length;
+    setLoaderPhrase(phrases[phraseIndex], true);
+  }, 660);
+
+  return () => {
+    window.clearInterval(interval);
+  };
+}
+
+function setLoaderPhrase(phrase, animate) {
+  const updateText = () => {
+    if (loaderKicker) loaderKicker.textContent = phrase.kicker;
+    loaderTitle.textContent = phrase.title;
+    loaderWord.textContent = phrase.word;
+    loaderCaption.textContent = phrase.caption;
+  };
+
+  if (!animate || !loaderStage) {
+    updateText();
+    return;
+  }
+
+  loaderStage.classList.add("is-phrase-switching");
+  window.setTimeout(() => {
+    updateText();
+    loaderStage.classList.remove("is-phrase-switching");
+    loaderStage.classList.add("is-phrase-glow");
+    window.setTimeout(() => {
+      loaderStage.classList.remove("is-phrase-glow");
+    }, 280);
+  }, 150);
 }
 
 async function transitionLanguage(nextLang) {
