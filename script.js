@@ -784,13 +784,26 @@ function wait(ms) {
 
 function setupPremiumMotion() {
   const motionTargets = [
+    ...document.querySelectorAll(".hero .eyebrow"),
+    ...document.querySelectorAll(".hero h1"),
+    ...document.querySelectorAll(".hero-text"),
     ...document.querySelectorAll(".tilda-heading"),
+    ...document.querySelectorAll(".tilda-heading h2"),
+    ...document.querySelectorAll(".tilda-heading p"),
     ...document.querySelectorAll(".profile-tile"),
+    ...document.querySelectorAll(".profile-tile h3"),
+    ...document.querySelectorAll(".profile-tile p"),
     ...document.querySelectorAll(".product-card"),
+    ...document.querySelectorAll(".product-card h3"),
+    ...document.querySelectorAll(".lesson-chip"),
     ...document.querySelectorAll(".lesson-feature-grid article"),
+    ...document.querySelectorAll(".lesson-feature-grid h3"),
+    ...document.querySelectorAll(".lesson-feature-grid p"),
     ...document.querySelectorAll(".result-poster"),
+    ...document.querySelectorAll(".poster-copy > *"),
     ...document.querySelectorAll(".result-list p"),
     ...document.querySelectorAll(".order-layout > *"),
+    ...document.querySelectorAll(".contact-copy > *"),
     ...document.querySelectorAll(".contact-lines a"),
     ...document.querySelectorAll(".contact-form label"),
     ...document.querySelectorAll(".site-footer p")
@@ -800,18 +813,42 @@ function setupPremiumMotion() {
 
   const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   document.documentElement.classList.toggle("motion-reduced", reduceMotion);
+  const revealDuration = reduceMotion ? 580 : 980;
+
+  const clearRevealState = (target) => {
+    const delay = Number.parseFloat(target.style.getPropertyValue("--reveal-delay")) || 0;
+    window.setTimeout(() => {
+      target.classList.remove("reveal-ready");
+    }, delay + revealDuration);
+  };
 
   if (!("IntersectionObserver" in window)) {
-    motionTargets.forEach((target) => target.classList.add("reveal-visible"));
+    motionTargets.forEach((target) => {
+      target.classList.add("reveal-visible");
+      target.classList.remove("reveal-ready");
+    });
     return;
   }
 
   const staggerGroups = [
+    ".hero .eyebrow",
+    ".hero h1",
+    ".hero-text",
+    ".tilda-heading h2",
+    ".tilda-heading p",
     ".profile-tile",
+    ".profile-tile h3",
+    ".profile-tile p",
     ".product-card",
+    ".product-card h3",
+    ".lesson-chip",
     ".lesson-feature-grid article",
+    ".lesson-feature-grid h3",
+    ".lesson-feature-grid p",
+    ".poster-copy > *",
     ".result-list p",
     ".order-layout > *",
+    ".contact-copy > *",
     ".contact-lines a",
     ".contact-form label",
     ".site-footer p"
@@ -831,6 +868,7 @@ function setupPremiumMotion() {
       entries.forEach((entry) => {
         if (!entry.isIntersecting) return;
         entry.target.classList.add("reveal-visible");
+        clearRevealState(entry.target);
         observer.unobserve(entry.target);
       });
     },
