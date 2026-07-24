@@ -1551,6 +1551,13 @@ td span {
 
 /* Public landing style matched to the requested reference rhythm. */
 .public-page {
+  --liquid-bg: linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(255, 231, 226, 0.22));
+  --liquid-bg-strong: linear-gradient(145deg, rgba(255, 255, 255, 0.74), rgba(255, 231, 226, 0.32));
+  --liquid-red: linear-gradient(135deg, rgba(181, 16, 34, 0.96), rgba(143, 6, 20, 0.94) 48%, rgba(78, 0, 8, 0.96));
+  --liquid-border: rgba(255, 255, 255, 0.58);
+  --liquid-border-red: rgba(255, 247, 245, 0.34);
+  --liquid-shadow: 0 28px 72px rgba(86, 0, 10, 0.14), 0 1px 0 rgba(255, 255, 255, 0.64) inset;
+  --liquid-shadow-red: 0 34px 88px rgba(66, 0, 7, 0.28), 0 1px 0 rgba(255, 255, 255, 0.28) inset;
   background: #fff3f1;
   color: #3a080d;
 }
@@ -1936,9 +1943,13 @@ td span {
 .public-page .site-header {
   min-height: 90px;
   padding-inline: max(48px, calc((100vw - 1160px) / 2));
-  background: rgba(255, 243, 241, 0.96);
-  border-bottom: 0;
-  box-shadow: none;
+  background:
+    var(--liquid-bg-strong),
+    rgba(255, 243, 241, 0.82);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.52);
+  box-shadow:
+    0 18px 54px rgba(86, 0, 10, 0.08),
+    0 1px 0 rgba(255, 255, 255, 0.68) inset;
 }
 
 .public-page .brand {
@@ -2103,9 +2114,30 @@ td span {
   gap: 56px;
   grid-template-columns: minmax(300px, 0.88fr) minmax(360px, 1.12fr);
   padding: 40px;
-  background: #8f0614;
+  isolation: isolate;
+  background:
+    linear-gradient(145deg, rgba(255, 247, 245, 0.2), rgba(255, 247, 245, 0.02) 38%),
+    var(--liquid-red);
+  border: 1px solid var(--liquid-border-red);
   border-radius: 52px;
-  box-shadow: none;
+  box-shadow: var(--liquid-shadow-red);
+}
+
+.public-page .hero-shell::before {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  z-index: 0;
+  border-radius: inherit;
+  background:
+    linear-gradient(115deg, rgba(255, 255, 255, 0.22), transparent 34%),
+    linear-gradient(290deg, rgba(255, 220, 216, 0.12), transparent 42%);
+  pointer-events: none;
+}
+
+.public-page .hero-shell > * {
+  position: relative;
+  z-index: 1;
 }
 
 .public-page .hero-portrait img {
@@ -2124,10 +2156,14 @@ td span {
 .public-page .premium-photo {
   isolation: isolate;
   padding: 10px;
+  border: 1px solid rgba(255, 247, 244, 0.3);
   border-radius: 30px;
   background:
     linear-gradient(135deg, rgba(255, 247, 244, 0.32), rgba(255, 247, 244, 0.06)),
     rgba(111, 0, 7, 0.18);
+  box-shadow:
+    0 22px 62px rgba(54, 0, 7, 0.2),
+    0 1px 0 rgba(255, 255, 255, 0.34) inset;
 }
 
 .public-page .photo-rim {
@@ -2139,6 +2175,7 @@ td span {
   background:
     linear-gradient(145deg, rgba(255, 247, 244, 0.22), rgba(255, 247, 244, 0)),
     rgba(130, 0, 8, 0.2);
+  box-shadow: 0 18px 42px rgba(46, 0, 6, 0.14);
 }
 
 .public-page .premium-photo::after {
@@ -2358,11 +2395,14 @@ td span {
   aspect-ratio: 0.72 / 1;
   overflow: hidden;
   isolation: isolate;
-  border-radius: 18px;
-  background: #8f0614;
+  border: 1px solid rgba(255, 255, 255, 0.56);
+  border-radius: 22px;
+  background:
+    var(--liquid-bg),
+    #8f0614;
   box-shadow:
-    0 22px 44px rgba(148, 8, 17, 0.15),
-    0 0 0 1px rgba(143, 6, 20, 0.08);
+    0 26px 68px rgba(148, 8, 17, 0.16),
+    0 1px 0 rgba(255, 255, 255, 0.56) inset;
 }
 
 .public-page .profile-media::before {
@@ -2459,12 +2499,13 @@ td span {
   overflow: hidden;
   isolation: isolate;
   background:
-    linear-gradient(135deg, rgba(255, 247, 244, 0.42), rgba(255, 247, 244, 0)),
+    var(--liquid-bg),
     #8f0614;
-  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.56);
+  border-radius: 22px;
   box-shadow:
-    0 22px 44px rgba(148, 8, 17, 0.14),
-    0 0 0 1px rgba(143, 6, 20, 0.08);
+    0 26px 68px rgba(148, 8, 17, 0.15),
+    0 1px 0 rgba(255, 255, 255, 0.56) inset;
 }
 
 .public-page .product-image::before {
@@ -2581,9 +2622,15 @@ td span {
 }
 
 .public-page .lesson-feature-grid article {
-  padding: 22px 8px 0;
+  padding: 24px 18px 22px;
   color: #7d1017;
   text-align: center;
+  border: 1px solid rgba(255, 255, 255, 0.58);
+  border-radius: 28px;
+  background:
+    var(--liquid-bg),
+    rgba(255, 247, 245, 0.5);
+  box-shadow: var(--liquid-shadow);
 }
 
 .public-page .lesson-feature-grid h3 {
@@ -2603,12 +2650,20 @@ td span {
   gap: 54px;
   align-items: center;
   padding: 58px;
-  background: #8f0614;
+  isolation: isolate;
+  background:
+    linear-gradient(145deg, rgba(255, 247, 245, 0.18), rgba(255, 247, 245, 0.03) 38%),
+    var(--liquid-red);
+  border: 1px solid var(--liquid-border-red);
   border-radius: 46px;
+  box-shadow: var(--liquid-shadow-red);
 }
 
 .public-page .result-poster h2 {
   color: #fff7f5;
+  background: linear-gradient(90deg, #fff7f5, #ffe2de 52%, #ffffff);
+  -webkit-background-clip: text;
+  background-clip: text;
 }
 
 .public-page .poster-copy p {
@@ -2623,9 +2678,13 @@ td span {
 .public-page .result-list p {
   padding: 18px 20px;
   color: #7d1017;
-  background: #fff7f5;
+  background:
+    var(--liquid-bg-strong),
+    rgba(255, 247, 245, 0.74);
+  border: 1px solid rgba(255, 255, 255, 0.62);
   border-left: 0;
   border-radius: 24px;
+  box-shadow: var(--liquid-shadow);
 }
 
 .public-page #contact {
@@ -2653,10 +2712,13 @@ td span {
 }
 
 .public-page .contact-form {
-  padding: 0;
-  background: transparent;
-  border: 0;
-  box-shadow: none;
+  padding: 28px;
+  background:
+    var(--liquid-bg-strong),
+    rgba(255, 247, 245, 0.58);
+  border: 1px solid rgba(255, 255, 255, 0.62);
+  border-radius: 32px;
+  box-shadow: var(--liquid-shadow);
 }
 
 .public-page .contact-form label {
@@ -2736,15 +2798,29 @@ td span {
       0 1px 0 rgba(255, 255, 255, 0.28) inset;
   }
 
+  .public-page .hero-shell,
+  .public-page .result-poster {
+    background:
+      linear-gradient(145deg, rgba(255, 247, 245, 0.18), rgba(255, 247, 245, 0.03) 38%),
+      var(--liquid-red);
+    border-color: var(--liquid-border-red);
+    -webkit-backdrop-filter: blur(26px) saturate(185%);
+    backdrop-filter: blur(26px) saturate(185%);
+  }
+
   .public-page .hero .button.secondary,
+  .public-page .premium-photo,
+  .public-page .profile-media,
+  .public-page .product-image,
   .public-page .lesson-feature-grid article,
-  .public-page .result-list p {
+  .public-page .result-list p,
+  .public-page .contact-form {
     background:
       linear-gradient(135deg, rgba(255, 255, 255, 0.16), rgba(255, 239, 236, 0.06)),
       rgba(255, 247, 245, 0.08);
     border-color: rgba(255, 247, 245, 0.46);
-    -webkit-backdrop-filter: blur(18px) saturate(165%);
-    backdrop-filter: blur(18px) saturate(165%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    backdrop-filter: blur(24px) saturate(180%);
   }
 
   .public-page .contact-form input,
@@ -2895,6 +2971,20 @@ td span {
     box-shadow 620ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+.public-page .premium-photo,
+.public-page .profile-media,
+.public-page .product-image,
+.public-page .lesson-feature-grid article,
+.public-page .result-list p,
+.public-page .contact-form {
+  transition:
+    transform 520ms cubic-bezier(0.16, 1, 0.3, 1),
+    background 420ms ease,
+    border-color 420ms ease,
+    box-shadow 520ms cubic-bezier(0.16, 1, 0.3, 1),
+    filter 520ms ease;
+}
+
 .public-page .hero-portrait:hover img,
 .public-page .profile-tile:hover .profile-media img,
 .public-page .product-card:hover .product-image {
@@ -2905,6 +2995,18 @@ td span {
 .public-page .product-card:hover .product-image::before {
   transform: scale(calc(var(--visual-scale) + 0.05));
   filter: saturate(1.08) contrast(1.03);
+}
+
+.public-page .hero-portrait:hover .premium-photo,
+.public-page .profile-tile:hover .profile-media,
+.public-page .product-card:hover .product-image,
+.public-page .lesson-feature-grid article:hover,
+.public-page .result-list p:hover,
+.public-page .contact-form:hover {
+  border-color: rgba(255, 255, 255, 0.82);
+  box-shadow:
+    0 34px 86px rgba(86, 0, 10, 0.2),
+    0 1px 0 rgba(255, 255, 255, 0.78) inset;
 }
 
 .public-page .profile-tile,
@@ -2964,20 +3066,33 @@ td span {
 }
 
 .public-page .reveal-ready {
+  --reveal-y: 46px;
+  --reveal-scale: 0.962;
   opacity: 0;
-  transform: translateY(38px) scale(0.975);
-  filter: blur(10px) saturate(0.95);
-  will-change: opacity, transform, filter;
+  clip-path: inset(9% 0 9% 0 round 24px);
+  transform: translate3d(0, var(--reveal-y), 0) scale(var(--reveal-scale));
+  filter: blur(16px) saturate(0.84) brightness(1.03);
+  will-change: opacity, transform, filter, clip-path;
+}
+
+.public-page .reveal-ready.reveal-from-up {
+  --reveal-y: -46px;
+}
+
+.public-page .reveal-ready.reveal-from-down {
+  --reveal-y: 46px;
 }
 
 .public-page .reveal-ready.reveal-visible {
   opacity: 1;
-  transform: translateY(0) scale(1);
-  filter: blur(0) saturate(1);
+  clip-path: inset(0 0 0 0 round 0);
+  transform: translate3d(0, 0, 0) scale(1);
+  filter: blur(0) saturate(1) brightness(1);
   transition:
-    opacity 880ms cubic-bezier(0.16, 1, 0.3, 1),
-    transform 880ms cubic-bezier(0.16, 1, 0.3, 1),
-    filter 880ms cubic-bezier(0.16, 1, 0.3, 1);
+    opacity 920ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 1040ms cubic-bezier(0.16, 1, 0.3, 1),
+    filter 1040ms cubic-bezier(0.16, 1, 0.3, 1),
+    clip-path 1040ms cubic-bezier(0.16, 1, 0.3, 1);
   transition-delay: var(--reveal-delay, 0ms);
 }
 
@@ -3248,8 +3363,18 @@ td span {
   }
 
   .public-page .reveal-ready {
-    transform: translateY(18px) scale(0.995);
+    --reveal-y: 22px;
+    clip-path: inset(4% 0 4% 0 round 18px);
+    transform: translate3d(0, var(--reveal-y), 0) scale(0.995);
     filter: blur(3px);
+  }
+
+  .public-page .reveal-ready.reveal-from-up {
+    --reveal-y: -22px;
+  }
+
+  .public-page .reveal-ready.reveal-from-down {
+    --reveal-y: 22px;
   }
 
   .public-page .reveal-ready.reveal-visible {

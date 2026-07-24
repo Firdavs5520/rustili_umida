@@ -813,22 +813,65 @@ function setupPremiumMotion() {
 
   const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   document.documentElement.classList.toggle("motion-reduced", reduceMotion);
-  const revealDuration = reduceMotion ? 580 : 980;
+  const revealDuration = reduceMotion ? 640 : 1020;
+  const revealTimers = new WeakMap();
+  let lastScrollY = window.scrollY;
+  let scrollDirection = "down";
+  let directionTicking = false;
+
+  const setRevealOrigin = (target, origin) => {
+    target.classList.toggle("reveal-from-up", origin === "up");
+    target.classList.toggle("reveal-from-down", origin !== "up");
+  };
 
   const clearRevealState = (target) => {
     const delay = Number.parseFloat(target.style.getPropertyValue("--reveal-delay")) || 0;
-    window.setTimeout(() => {
-      target.classList.remove("reveal-ready");
+    window.clearTimeout(revealTimers.get(target));
+    const timer = window.setTimeout(() => {
+      target.classList.remove("reveal-ready", "is-revealing", "reveal-from-up", "reveal-from-down");
+      revealTimers.delete(target);
     }, delay + revealDuration);
+    revealTimers.set(target, timer);
   };
 
-  if (!("IntersectionObserver" in window)) {
-    motionTargets.forEach((target) => {
+  const updateScrollDirection = () => {
+    const nextScrollY = Math.max(window.scrollY, 0);
+    if (Math.abs(nextScrollY - lastScrollY) > 2) {
+      scrollDirection = nextScrollY > lastScrollY ? "down" : "up";
+      document.documentElement.dataset.scrollDirection = scrollDirection;
+    }
+    lastScrollY = nextScrollY;
+    directionTicking = false;
+  };
+
+  const requestDirectionUpdate = () => {
+    if (directionTicking) return;
+    directionTicking = true;
+    window.requestAnimationFrame(updateScrollDirection);
+  };
+
+  const resetRevealTarget = (target, origin) => {
+    window.clearTimeout(revealTimers.get(target));
+    revealTimers.delete(target);
+    target.dataset.revealState = "hidden";
+    target.classList.add("reveal-ready");
+    target.classList.remove("reveal-visible", "is-revealing");
+    setRevealOrigin(target, origin);
+  };
+
+  const showRevealTarget = (target) => {
+    if (target.dataset.revealState === "visible") return;
+
+    window.clearTimeout(revealTimers.get(target));
+    target.dataset.revealState = "visible";
+    target.classList.add("reveal-ready", "is-revealing");
+    setRevealOrigin(target, scrollDirection === "up" ? "up" : "down");
+
+    window.requestAnimationFrame(() => {
       target.classList.add("reveal-visible");
-      target.classList.remove("reveal-ready");
+      clearRevealState(target);
     });
-    return;
-  }
+  };
 
   const staggerGroups = [
     ".hero .eyebrow",
@@ -861,20 +904,60 @@ function setupPremiumMotion() {
     });
   });
 
-  motionTargets.forEach((target) => target.classList.add("reveal-ready"));
+  const isTargetInView = (target) => {
+    const rect = target.getBoundingClientRect();
+    const topEdge = window.innerHeight * 0.06;
+    const bottomEdge = window.innerHeight * 0.9;
+    return rect.top < bottomEdge && rect.bottom > topEdge;
+  };
+
+  if (!("IntersectionObserver" in window)) {
+    let manualTicking = false;
+    const updateManualReveal = () => {
+      motionTargets.forEach((target) => {
+        if (isTargetInView(target)) {
+          showRevealTarget(target);
+          return;
+        }
+
+        resetRevealTarget(target, target.getBoundingClientRect().top < 0 ? "up" : "down");
+      });
+      manualTicking = false;
+    };
+    const requestManualReveal = () => {
+      requestDirectionUpdate();
+      if (manualTicking) return;
+      manualTicking = true;
+      window.requestAnimationFrame(updateManualReveal);
+    };
+
+    motionTargets.forEach((target) => resetRevealTarget(target, "down"));
+    document.documentElement.dataset.scrollDirection = scrollDirection;
+    window.addEventListener("scroll", requestManualReveal, { passive: true });
+    window.addEventListener("resize", requestManualReveal);
+    window.requestAnimationFrame(updateManualReveal);
+    return;
+  }
+
+  motionTargets.forEach((target) => resetRevealTarget(target, "down"));
+  document.documentElement.dataset.scrollDirection = scrollDirection;
+  window.addEventListener("scroll", requestDirectionUpdate, { passive: true });
 
   const observer = new IntersectionObserver(
     (entries) => {
       entries.forEach((entry) => {
-        if (!entry.isIntersecting) return;
-        entry.target.classList.add("reveal-visible");
-        clearRevealState(entry.target);
-        observer.unobserve(entry.target);
+        if (entry.isIntersecting) {
+          showRevealTarget(entry.target);
+          return;
+        }
+
+        const origin = entry.boundingClientRect.top < 0 ? "up" : "down";
+        resetRevealTarget(entry.target, origin);
       });
     },
     {
-      rootMargin: "0px 0px -12% 0px",
-      threshold: 0.18
+      rootMargin: "0px 0px -8% 0px",
+      threshold: 0.14
     }
   );
 
