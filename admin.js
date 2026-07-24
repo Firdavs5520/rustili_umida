@@ -6,6 +6,8 @@ const state = {
   payments: [],
   leads: [],
   storageMode: "server",
+  remindersEnabled: false,
+  reminderMessage: "",
   editing: {
     student: null,
     lesson: null
@@ -14,6 +16,10 @@ const state = {
 
 const CABINET_STORAGE_KEY = "umida-rus-tili-cabinet";
 const STORAGE_COLLECTIONS = ["students", "lessons", "payments", "leads"];
+const REMINDER_ENABLED_KEY = "umida-rus-tili-reminders";
+const REMINDER_SENT_KEY = "umida-rus-tili-reminder-sent";
+const REMINDER_LEAD_MINUTES = 10;
+let reminderTimer = 0;
 
 const tabMeta = {
   dashboard: ["Bosh sahifa", "Bugungi holat"],
@@ -29,6 +35,7 @@ const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
 document.addEventListener("DOMContentLoaded", init);
 
 async function init() {
+  state.remindersEnabled = readReminderSetting();
   wireGlobalEvents();
   const session = await fetchJson("/api/session");
   if (session.authenticated) {
@@ -96,6 +103,7 @@ async function loadAll() {
   state.lessons = source.lessons;
   state.payments = source.payments;
   state.leads = source.leads;
+  startLessonReminderLoop();
 }
 
 function setTab(tab) {
@@ -134,6 +142,8 @@ function renderDashboard() {
       ${statCard("To'langan summa", money(summary.paidTotal))}
     </div>
 
+    ${renderReminderCard()}
+
     <div class="dashboard-grid">
       <section class="surface">
         <div class="surface-header">
@@ -144,9 +154,9 @@ function renderDashboard() {
           <div class="timeline-list">
             ${summary.nextLessons.map((lesson) => `
               <article class="timeline-item">
-                <time>${formatDateTime(lesson.lesson_date)}</time>
+                <time>${lessonTimeRange(lesson)}</time>
                 <strong>${esc(lesson.title)}</strong>
-                <span>${esc(lesson.student_name || "O'quvchi tanlanmagan")} - ${esc(lesson.format)}</span>
+                <span>${esc(lesson.student_name || "O'quvchi tanlanmagan")} - ${lessonFormatLabel(lesson.format)}</span>
               </article>
             `).join("")}
           </div>
@@ -172,6 +182,33 @@ function renderDashboard() {
       </section>
     </div>
   `;
+}
+
+function renderReminderCard() {
+  const supported = "Notification" in window;
+  const permission = supported ? Notification.permission : "unsupported";
+  const enabled = state.remindersEnabled && permission === "granted";
+  const statusText = state.reminderMessage || getReminderStatusText(supported, permission, enabled);
+
+  return `
+    <section class="surface reminder-card">
+      <div>
+        <p class="section-kicker">Eslatma</p>
+        <h2>Dars xabarlari</h2>
+        <p>${esc(statusText)}</p>
+      </div>
+      <button class="button ${enabled ? "secondary" : "primary"} compact" type="button" data-action="toggle-reminders">
+        ${enabled ? "Eslatmani o'chirish" : "Eslatmani yoqish"}
+      </button>
+    </section>
+  `;
+}
+
+function getReminderStatusText(supported, permission, enabled) {
+  if (!supported) return "Bu brauzer notification xabarlarini qo'llamaydi.";
+  if (permission === "denied") return "Brauzer notification ruxsatini bloklagan. Ruxsatni browser sozlamasidan ochish kerak.";
+  if (enabled) return `Darsdan ${REMINDER_LEAD_MINUTES} daqiqa oldin va dars boshlanganda browser xabari chiqadi.`;
+  return "Yoqsangiz, panel ochiq turganda darsdan oldin browser xabari chiqadi.";
 }
 
 function renderStudents() {
@@ -273,17 +310,18 @@ function renderLessons() {
           <input name="title" placeholder="Masalan: Fe'llar zamoni" required>
         </label>
         <label>
-          Vaqt
+          Boshlanish vaqti
           <input name="lesson_date" type="datetime-local" required>
         </label>
         <label>
-          Davomiylik
-          <input name="duration_minutes" type="number" min="15" max="240" step="15" value="60">
+          Tugash vaqti
+          <input name="lesson_end" type="time" required>
+          <input name="duration_minutes" type="hidden" value="60">
         </label>
         <label>
-          Format
+          Dars turi
           <select name="format">
-            ${options(["online", "offline", "group"])}
+            ${lessonFormatOptions()}
           </select>
         </label>
         <label>
@@ -331,7 +369,7 @@ function renderLessons() {
             <table>
               <thead>
                 <tr>
-                  <th>Sana</th>
+                  <th>Vaqt</th>
                   <th>Dars</th>
                   <th>O'quvchi</th>
                   <th>Status</th>
@@ -348,7 +386,11 @@ function renderLessons() {
     </div>
   `;
 
-  if (state.editing.lesson) fillForm($("#lessonForm"), state.editing.lesson);
+  const lessonForm = $("#lessonForm");
+  if (state.editing.lesson) {
+    fillForm(lessonForm, state.editing.lesson);
+    fillLessonComputedFields(lessonForm, state.editing.lesson);
+  }
 }
 
 function renderPayments() {
@@ -492,7 +534,7 @@ async function handlePanelSubmit(event) {
       const id = state.editing.lesson?.id;
       await fetchJson(id ? `/api/lessons/${id}` : "/api/lessons", {
         method: id ? "PUT" : "POST",
-        body: formToJson(form)
+        body: lessonFormToJson(form)
       });
       state.editing.lesson = null;
       await loadAll();
@@ -517,6 +559,13 @@ async function handlePanelClick(event) {
   const button = event.target.closest("button");
   if (!button) return;
 
+  const action = button.dataset.action;
+  if (action === "toggle-reminders") {
+    await toggleLessonReminders();
+    renderActiveTab();
+    return;
+  }
+
   const jump = button.dataset.tabJump;
   if (jump) {
     setTab(jump);
@@ -536,8 +585,6 @@ async function handlePanelClick(event) {
   }
 
   const id = Number(button.dataset.id || 0);
-  const action = button.dataset.action;
-
   if (action === "edit-student") {
     state.editing.student = state.students.find((student) => student.id === id);
     renderStudents();
@@ -625,14 +672,14 @@ function studentRow(student) {
 
 function lessonRow(lesson) {
   return `
-    <tr data-status="${esc(lesson.status)}" data-search="${searchText(lesson.title, lesson.student_name, lesson.topic, lesson.homework, lesson.notes)}">
+    <tr data-status="${esc(lesson.status)}" data-search="${searchText(lesson.title, lesson.student_name, lessonFormatLabel(lesson.format), lesson.topic, lesson.homework, lesson.notes)}">
       <td>
-        <strong>${formatDateTime(lesson.lesson_date)}</strong>
-        <span>${esc(lesson.duration_minutes)} daqiqa - ${esc(lesson.format)}</span>
+        <strong>${lessonTimeRange(lesson)}</strong>
+        <span>${esc(lesson.duration_minutes)} daqiqa</span>
       </td>
       <td>
         <strong>${esc(lesson.title)}</strong>
-        <span>${esc(lesson.topic || "-")}</span>
+        <span>${lessonFormatLabel(lesson.format)} - ${esc(lesson.topic || "-")}</span>
       </td>
       <td>${esc(lesson.student_name || "Tanlanmagan")}</td>
       <td>${badge(lesson.status)}</td>
@@ -687,6 +734,12 @@ function studentOptions() {
     .join("");
 }
 
+function lessonFormatOptions() {
+  return ["individual-online", "individual-offline", "group-online", "group-offline"]
+    .map((value) => `<option value="${esc(value)}">${lessonFormatLabel(value)}</option>`)
+    .join("");
+}
+
 function options(values) {
   return values.map((value) => `<option value="${esc(value)}">${esc(label(value))}</option>`).join("");
 }
@@ -715,6 +768,11 @@ function label(value) {
     online: "Online",
     offline: "Offline",
     group: "Guruh",
+    individual: "Individual",
+    "individual-online": "Individual online",
+    "individual-offline": "Individual offline",
+    "group-online": "Guruh online",
+    "group-offline": "Guruh offline",
     paid: "To'langan",
     pending: "Kutilmoqda",
     new: "Yangi",
@@ -728,6 +786,10 @@ function label(value) {
   return labels[value] || value;
 }
 
+function lessonFormatLabel(value) {
+  return esc(label(value));
+}
+
 function emptyState() {
   return $("#emptyStateTemplate").innerHTML;
 }
@@ -738,6 +800,215 @@ function fillForm(form, data) {
     if (!field) return;
     field.value = value ?? "";
   });
+}
+
+function fillLessonComputedFields(form, lesson) {
+  if (!form) return;
+
+  const formatField = form.elements.format;
+  if (formatField && !formatField.value) {
+    formatField.value = normalizeLessonFormat(lesson.format);
+  }
+
+  const endField = form.elements.lesson_end;
+  if (endField) {
+    endField.value = lesson.lesson_end || getLessonEndValue(lesson);
+  }
+}
+
+function lessonFormToJson(form) {
+  const data = Object.fromEntries(new FormData(form).entries());
+  data.format = normalizeLessonFormat(data.format);
+  data.duration_minutes = getLessonDuration(data.lesson_date, data.lesson_end, data.duration_minutes);
+  return JSON.stringify(data);
+}
+
+function normalizeLessonFormat(value) {
+  const format = String(value || "").trim();
+  if (format === "online") return "individual-online";
+  if (format === "offline") return "individual-offline";
+  if (format === "group") return "group-offline";
+  return format || "individual-online";
+}
+
+function lessonTimeRange(lesson) {
+  const startDate = parseLessonDate(lesson.lesson_date);
+  if (!startDate) return esc(formatDateTime(lesson.lesson_date));
+
+  const endDate = new Date(startDate.getTime() + Number(lesson.duration_minutes || 60) * 60000);
+  return esc(`${formatDateObject(startDate)}, ${formatClock(startDate)} - ${formatClock(endDate)}`);
+}
+
+function getLessonEndValue(lesson) {
+  const startDate = parseLessonDate(lesson.lesson_date);
+  if (!startDate) return "";
+  const endDate = new Date(startDate.getTime() + Number(lesson.duration_minutes || 60) * 60000);
+  return `${String(endDate.getHours()).padStart(2, "0")}:${String(endDate.getMinutes()).padStart(2, "0")}`;
+}
+
+function getLessonDuration(startValue, endValue, fallback = 60) {
+  const startDate = parseLessonDate(startValue);
+  const [hours, minutes] = String(endValue || "").split(":").map(Number);
+  if (!startDate || Number.isNaN(hours) || Number.isNaN(minutes)) {
+    return Math.min(480, Math.max(15, Number(fallback || 60)));
+  }
+
+  const endDate = new Date(startDate);
+  endDate.setHours(hours, minutes, 0, 0);
+  if (endDate <= startDate) endDate.setDate(endDate.getDate() + 1);
+
+  const duration = Math.round((endDate - startDate) / 60000);
+  return Math.min(480, Math.max(15, duration));
+}
+
+function parseLessonDate(value) {
+  if (!value) return null;
+  const normalized = String(value).includes("T") ? value : String(value).replace(" ", "T");
+  const date = new Date(normalized);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function formatClock(date) {
+  return date.toLocaleTimeString("uz-UZ", {
+    hour: "2-digit",
+    minute: "2-digit"
+  });
+}
+
+function formatDateObject(date) {
+  return date.toLocaleDateString("uz-UZ", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit"
+  });
+}
+
+async function toggleLessonReminders() {
+  if (!("Notification" in window)) {
+    state.reminderMessage = "Bu brauzer notification xabarlarini qo'llamaydi.";
+    return;
+  }
+
+  if (state.remindersEnabled) {
+    setLessonReminderEnabled(false);
+    state.reminderMessage = "Eslatma o'chirildi.";
+    startLessonReminderLoop();
+    return;
+  }
+
+  let permission = Notification.permission;
+  if (permission === "default") {
+    permission = await Notification.requestPermission();
+  }
+
+  if (permission !== "granted") {
+    state.reminderMessage = "Notification ruxsati berilmadi. Browser sozlamasidan ruxsat berish kerak.";
+    setLessonReminderEnabled(false);
+    return;
+  }
+
+  setLessonReminderEnabled(true);
+  state.reminderMessage = `Eslatma yoqildi. Darsdan ${REMINDER_LEAD_MINUTES} daqiqa oldin browser xabari chiqadi.`;
+  sendNotification("Eslatma yoqildi", "Rejadagi darslar uchun browser xabari tayyor.");
+  startLessonReminderLoop();
+}
+
+function readReminderSetting() {
+  try {
+    return localStorage.getItem(REMINDER_ENABLED_KEY) === "true";
+  } catch {
+    return false;
+  }
+}
+
+function setLessonReminderEnabled(value) {
+  state.remindersEnabled = Boolean(value);
+  try {
+    localStorage.setItem(REMINDER_ENABLED_KEY, String(state.remindersEnabled));
+  } catch {
+    // Browser storage can be unavailable in private mode.
+  }
+}
+
+function startLessonReminderLoop() {
+  window.clearInterval(reminderTimer);
+  reminderTimer = 0;
+
+  if (!state.remindersEnabled || !("Notification" in window) || Notification.permission !== "granted") return;
+
+  checkLessonReminders();
+  reminderTimer = window.setInterval(checkLessonReminders, 30000);
+}
+
+function checkLessonReminders() {
+  const sent = readSentReminders();
+  const nowTime = Date.now();
+  let changed = false;
+
+  state.lessons
+    .filter((lesson) => lesson.status === "planned")
+    .forEach((lesson) => {
+      const startDate = parseLessonDate(lesson.lesson_date);
+      if (!startDate) return;
+
+      const startTime = startDate.getTime();
+      const beforeTime = startTime - REMINDER_LEAD_MINUTES * 60000;
+      const beforeKey = `${lesson.id}:${lesson.lesson_date}:before`;
+      const startKey = `${lesson.id}:${lesson.lesson_date}:start`;
+
+      if (nowTime >= beforeTime && nowTime < startTime && !sent[beforeKey]) {
+        sendLessonNotification(lesson, `Dars ${REMINDER_LEAD_MINUTES} daqiqadan keyin`);
+        sent[beforeKey] = nowTime;
+        changed = true;
+      }
+
+      if (nowTime >= startTime && nowTime < startTime + 15 * 60000 && !sent[startKey]) {
+        sendLessonNotification(lesson, "Dars boshlandi");
+        sent[startKey] = nowTime;
+        changed = true;
+      }
+    });
+
+  if (changed) writeSentReminders(sent);
+}
+
+function sendLessonNotification(lesson, title) {
+  const student = lesson.student_name || "O'quvchi tanlanmagan";
+  const body = `${lessonTimeRange(lesson)} | ${student} | ${label(lesson.format)} | ${lesson.title}`;
+  sendNotification(title, body);
+}
+
+function sendNotification(title, body) {
+  try {
+    new Notification(title, {
+      body,
+      tag: `umida-rus-tili-${title}`,
+      requireInteraction: false
+    });
+  } catch {
+    state.reminderMessage = "Notification yuborishda xatolik bo'ldi.";
+  }
+}
+
+function readSentReminders() {
+  try {
+    const sent = JSON.parse(localStorage.getItem(REMINDER_SENT_KEY) || "{}");
+    const freshAfter = Date.now() - 1000 * 60 * 60 * 48;
+    Object.entries(sent).forEach(([key, value]) => {
+      if (Number(value) < freshAfter) delete sent[key];
+    });
+    return sent;
+  } catch {
+    return {};
+  }
+}
+
+function writeSentReminders(sent) {
+  try {
+    localStorage.setItem(REMINDER_SENT_KEY, JSON.stringify(sent));
+  } catch {
+    // Ignore storage errors.
+  }
 }
 
 function getClientBootstrapData() {
@@ -861,8 +1132,9 @@ async function handleClientApi(url, options = {}) {
       student_id: body.student_id || "",
       title: body.title || "",
       lesson_date: body.lesson_date || timestamp,
+      lesson_end: body.lesson_end || "",
       duration_minutes: Number(body.duration_minutes || 60),
-      format: body.format || "online",
+      format: normalizeLessonFormat(body.format),
       status: body.status || "planned",
       topic: body.topic || "",
       homework: body.homework || "",
@@ -879,6 +1151,7 @@ async function handleClientApi(url, options = {}) {
   if (lessonMatch && method === "PUT") {
     updateClientItem(store, "lessons", Number(lessonMatch[1]), {
       ...body,
+      format: normalizeLessonFormat(body.format),
       duration_minutes: Number(body.duration_minutes || 60),
       updated_at: timestamp
     });

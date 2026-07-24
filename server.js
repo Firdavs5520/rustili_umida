@@ -571,8 +571,8 @@ function normalizeLesson(body) {
     throw httpError(400, "Dars statusi noto'g'ri.");
   }
 
-  const format = clean(body.format || "online", 40);
-  if (!["online", "offline", "group"].includes(format)) {
+  const format = clean(body.format || "individual-online", 40);
+  if (!["online", "offline", "group", "individual-online", "individual-offline", "group-online", "group-offline"].includes(format)) {
     throw httpError(400, "Dars formati noto'g'ri.");
   }
 
@@ -581,7 +581,7 @@ function normalizeLesson(body) {
     student_id: studentId > 0 ? studentId : null,
     title: requireText(body.title, "Dars nomi", 180),
     lesson_date: requireText(body.lesson_date, "Dars vaqti", 40),
-    duration_minutes: clampNumber(body.duration_minutes, 15, 240, 60),
+    duration_minutes: clampNumber(body.duration_minutes, 15, 480, 60),
     format,
     status,
     topic: clean(body.topic || "", 800),

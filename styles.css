@@ -1214,6 +1214,31 @@ textarea:focus {
   line-height: 1.2;
 }
 
+.reminder-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 18px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.86), rgba(255, 229, 225, 0.52)),
+    #fff9f7;
+  border-color: rgba(143, 6, 20, 0.16);
+  box-shadow: 0 18px 46px rgba(86, 0, 10, 0.1);
+}
+
+.reminder-card h2 {
+  margin: 0;
+  color: var(--blue-dark);
+  font-size: 1.2rem;
+}
+
+.reminder-card p:not(.section-kicker) {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-weight: 700;
+}
+
 .timeline-list,
 .compact-list {
   display: grid;
@@ -1585,6 +1610,14 @@ td span {
     display: grid;
   }
 
+  .reminder-card {
+    display: grid;
+  }
+
+  .reminder-card .button {
+    width: 100%;
+  }
+
   .topbar-actions {
     justify-content: stretch;
   }
@@ -1652,7 +1685,7 @@ td span {
 
 .public-page.is-loading > :not(.page-loader):not(.language-loader) {
   transform: translateY(14px) scale(0.985);
-  filter: blur(12px);
+  opacity: 0.45;
 }
 
 .page-loader,
@@ -1701,8 +1734,7 @@ td span {
   transition:
     border-color 420ms ease,
     background 420ms ease,
-    box-shadow 420ms ease,
-    filter 420ms ease;
+    box-shadow 420ms ease;
   animation:
     loaderStageIn 920ms cubic-bezier(0.16, 1, 0.3, 1) both,
     loaderBreath 3600ms ease-in-out 980ms infinite;
@@ -1745,8 +1777,7 @@ td span {
   margin-bottom: 22px;
   transition:
     opacity 360ms ease,
-    transform 420ms cubic-bezier(0.16, 1, 0.3, 1),
-    filter 360ms ease;
+    transform 420ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .loader-mark::before,
@@ -1786,8 +1817,7 @@ td span {
   margin-bottom: 24px;
   transition:
     opacity 360ms ease,
-    transform 420ms cubic-bezier(0.16, 1, 0.3, 1),
-    filter 360ms ease;
+    transform 420ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .loader-book span {
@@ -1832,8 +1862,7 @@ td span {
 .loader-phrase {
   transition:
     opacity 260ms ease,
-    transform 260ms cubic-bezier(0.16, 1, 0.3, 1),
-    filter 260ms ease;
+    transform 260ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .loader-stage [data-loader-title] {
@@ -1875,7 +1904,6 @@ td span {
 .loader-stage.is-phrase-switching .loader-phrase {
   opacity: 0;
   transform: translateY(-16px) scale(0.965);
-  filter: blur(6px);
 }
 
 .loader-stage.is-phrase-switching {
@@ -1884,14 +1912,12 @@ td span {
     linear-gradient(180deg, rgba(255, 247, 245, 0.2), rgba(255, 247, 245, 0.08)),
     rgba(96, 0, 7, 0.28);
   box-shadow: 0 42px 110px rgba(66, 0, 5, 0.45);
-  filter: saturate(1.08);
 }
 
 .loader-stage.is-phrase-switching .loader-mark,
 .loader-stage.is-phrase-switching .loader-book {
   opacity: 0.68;
   transform: translateY(-8px) scale(0.94);
-  filter: blur(3px);
 }
 
 .loader-stage.is-phrase-switching .loader-progress {
@@ -2017,11 +2043,11 @@ td span {
 
 .public-page.is-language-transition main,
 .public-page.is-language-transition .site-header {
+  opacity: 0.62;
   transform: translateY(-10px) scale(0.985);
-  filter: blur(10px);
   transition:
-    transform 420ms cubic-bezier(0.16, 1, 0.3, 1),
-    filter 420ms cubic-bezier(0.16, 1, 0.3, 1);
+    opacity 320ms ease,
+    transform 420ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .public-page .site-header {
@@ -2905,8 +2931,8 @@ td span {
       linear-gradient(135deg, rgba(255, 255, 255, 0.74), rgba(255, 232, 228, 0.48)),
       rgba(255, 243, 241, 0.58);
     border-bottom: 1px solid rgba(255, 255, 255, 0.56);
-    -webkit-backdrop-filter: blur(26px) saturate(180%);
-    backdrop-filter: blur(26px) saturate(180%);
+    -webkit-backdrop-filter: blur(16px) saturate(170%);
+    backdrop-filter: blur(16px) saturate(170%);
     box-shadow:
       0 18px 48px rgba(86, 0, 10, 0.1),
       0 1px 0 rgba(255, 255, 255, 0.62) inset;
@@ -2919,8 +2945,8 @@ td span {
       linear-gradient(135deg, rgba(255, 255, 255, 0.68), rgba(255, 231, 226, 0.34)),
       rgba(255, 248, 246, 0.54);
     border-color: rgba(255, 255, 255, 0.58);
-    -webkit-backdrop-filter: blur(22px) saturate(180%);
-    backdrop-filter: blur(22px) saturate(180%);
+    -webkit-backdrop-filter: blur(14px) saturate(170%);
+    backdrop-filter: blur(14px) saturate(170%);
     box-shadow:
       0 18px 46px rgba(86, 0, 10, 0.12),
       0 1px 0 rgba(255, 255, 255, 0.68) inset,
@@ -2943,8 +2969,8 @@ td span {
       linear-gradient(145deg, rgba(255, 247, 245, 0.18), rgba(255, 247, 245, 0.03) 38%),
       var(--liquid-red);
     border-color: var(--liquid-border-red);
-    -webkit-backdrop-filter: blur(26px) saturate(185%);
-    backdrop-filter: blur(26px) saturate(185%);
+    -webkit-backdrop-filter: blur(16px) saturate(175%);
+    backdrop-filter: blur(16px) saturate(175%);
   }
 
   .public-page .hero .button.secondary,
@@ -2958,8 +2984,8 @@ td span {
       linear-gradient(135deg, rgba(255, 255, 255, 0.16), rgba(255, 239, 236, 0.06)),
       rgba(255, 247, 245, 0.08);
     border-color: rgba(255, 247, 245, 0.46);
-    -webkit-backdrop-filter: blur(24px) saturate(180%);
-    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(14px) saturate(170%);
+    backdrop-filter: blur(14px) saturate(170%);
   }
 
   .public-page .contact-form input,
@@ -2972,8 +2998,8 @@ td span {
       rgba(255, 248, 246, 0.5);
     border: 1px solid rgba(255, 255, 255, 0.58);
     border-radius: 18px;
-    -webkit-backdrop-filter: blur(18px) saturate(170%);
-    backdrop-filter: blur(18px) saturate(170%);
+    -webkit-backdrop-filter: blur(12px) saturate(165%);
+    backdrop-filter: blur(12px) saturate(165%);
     box-shadow:
       0 14px 34px rgba(86, 0, 10, 0.08),
       0 1px 0 rgba(255, 255, 255, 0.76) inset;
@@ -3205,33 +3231,28 @@ td span {
 }
 
 .public-page .reveal-ready {
-  --reveal-y: 46px;
-  --reveal-scale: 0.962;
+  --reveal-y: 34px;
+  --reveal-scale: 0.985;
   opacity: 0;
-  clip-path: inset(9% 0 9% 0 round 24px);
   transform: translate3d(0, var(--reveal-y), 0) scale(var(--reveal-scale));
-  filter: blur(16px) saturate(0.84) brightness(1.03);
-  will-change: opacity, transform, filter, clip-path;
+  will-change: opacity, transform;
+  backface-visibility: hidden;
 }
 
 .public-page .reveal-ready.reveal-from-up {
-  --reveal-y: -46px;
+  --reveal-y: -34px;
 }
 
 .public-page .reveal-ready.reveal-from-down {
-  --reveal-y: 46px;
+  --reveal-y: 34px;
 }
 
 .public-page .reveal-ready.reveal-visible {
   opacity: 1;
-  clip-path: inset(0 0 0 0 round 0);
   transform: translate3d(0, 0, 0) scale(1);
-  filter: blur(0) saturate(1) brightness(1);
   transition:
-    opacity 920ms cubic-bezier(0.16, 1, 0.3, 1),
-    transform 1040ms cubic-bezier(0.16, 1, 0.3, 1),
-    filter 1040ms cubic-bezier(0.16, 1, 0.3, 1),
-    clip-path 1040ms cubic-bezier(0.16, 1, 0.3, 1);
+    opacity 680ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 760ms cubic-bezier(0.16, 1, 0.3, 1);
   transition-delay: var(--reveal-delay, 0ms);
 }
 
@@ -3261,12 +3282,10 @@ td span {
   from {
     opacity: 0;
     transform: translateY(26px) scale(0.975);
-    filter: blur(10px);
   }
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
-    filter: blur(0);
   }
 }
 
@@ -3274,12 +3293,10 @@ td span {
   from {
     opacity: 0;
     transform: translateY(34px);
-    filter: blur(8px);
   }
   to {
     opacity: 1;
     transform: translateY(0);
-    filter: blur(0);
   }
 }
 
@@ -3305,15 +3322,12 @@ td span {
 @keyframes locatedSectionPulse {
   0% {
     transform: translateY(12px) scale(0.985);
-    filter: blur(6px) saturate(0.92);
   }
   48% {
     transform: translateY(-3px) scale(1.012);
-    filter: blur(0) saturate(1.08);
   }
   100% {
     transform: translateY(0) scale(1);
-    filter: blur(0) saturate(1);
   }
 }
 
@@ -3321,12 +3335,10 @@ td span {
   from {
     opacity: 0;
     transform: translateY(28px) scale(0.94);
-    filter: blur(10px);
   }
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
-    filter: blur(0);
   }
 }
 
@@ -3433,17 +3445,14 @@ td span {
   from {
     opacity: 0;
     transform: translateY(18px) scale(0.965);
-    filter: blur(8px);
   }
   58% {
     opacity: 1;
     transform: translateY(-3px) scale(1.012);
-    filter: blur(0);
   }
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
-    filter: blur(0);
   }
 }
 
@@ -3451,17 +3460,14 @@ td span {
   from {
     opacity: 0.7;
     transform: translateY(10px) scale(0.92);
-    filter: blur(4px);
   }
   58% {
     opacity: 1;
     transform: translateY(-4px) scale(1.035);
-    filter: blur(0);
   }
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
-    filter: blur(0);
   }
 }
 
@@ -3518,9 +3524,7 @@ td span {
 
   .public-page .reveal-ready {
     --reveal-y: 22px;
-    clip-path: inset(4% 0 4% 0 round 18px);
     transform: translate3d(0, var(--reveal-y), 0) scale(0.995);
-    filter: blur(3px);
   }
 
   .public-page .reveal-ready.reveal-from-up {
@@ -3576,8 +3580,8 @@ td span {
       0 18px 48px rgba(86, 0, 10, 0.12),
       0 1px 0 rgba(255, 255, 255, 0.72) inset,
       0 -1px 0 rgba(100, 0, 12, 0.05) inset;
-    -webkit-backdrop-filter: blur(24px) saturate(180%);
-    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(14px) saturate(170%);
+    backdrop-filter: blur(14px) saturate(170%);
     pointer-events: auto;
     transition:
       background 260ms ease,
@@ -3795,8 +3799,8 @@ td span {
       background:
         linear-gradient(135deg, rgba(255, 255, 255, 0.72), rgba(255, 231, 226, 0.38)),
         rgba(255, 243, 241, 0.42);
-      -webkit-backdrop-filter: blur(34px) saturate(190%);
-      backdrop-filter: blur(34px) saturate(190%);
+      -webkit-backdrop-filter: blur(18px) saturate(175%);
+      backdrop-filter: blur(18px) saturate(175%);
       box-shadow:
         0 18px 48px rgba(103, 0, 7, 0.12),
         0 1px 0 rgba(255, 255, 255, 0.72) inset;
@@ -3809,8 +3813,8 @@ td span {
         linear-gradient(145deg, rgba(255, 255, 255, 0.66), rgba(255, 226, 221, 0.3)),
         rgba(255, 247, 245, 0.48);
       border: 1px solid rgba(255, 255, 255, 0.62);
-      -webkit-backdrop-filter: blur(32px) saturate(190%);
-      backdrop-filter: blur(32px) saturate(190%);
+      -webkit-backdrop-filter: blur(18px) saturate(175%);
+      backdrop-filter: blur(18px) saturate(175%);
       box-shadow:
         0 28px 72px rgba(105, 0, 8, 0.18),
         0 1px 0 rgba(255, 255, 255, 0.72) inset,
