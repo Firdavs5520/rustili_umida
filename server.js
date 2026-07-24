@@ -23,6 +23,7 @@ db.exec("PRAGMA journal_mode = WAL");
 
 initDatabase();
 seedDatabase();
+syncLegacyLessonStudents();
 
 const server = http.createServer(async (req, res) => {
   try {
@@ -78,6 +79,14 @@ function initDatabase() {
       FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE SET NULL
     );
 
+    CREATE TABLE IF NOT EXISTS lesson_students (
+      lesson_id INTEGER NOT NULL,
+      student_id INTEGER NOT NULL,
+      PRIMARY KEY (lesson_id, student_id),
+      FOREIGN KEY (lesson_id) REFERENCES lessons(id) ON DELETE CASCADE,
+      FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE
+    );
+
     CREATE TABLE IF NOT EXISTS payments (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       student_id INTEGER,
@@ -109,6 +118,16 @@ function ensureColumn(table, column, definition) {
   const columns = db.prepare(`PRAGMA table_info(${table})`).all();
   if (columns.some((item) => item.name === column)) return;
   db.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${definition}`);
+}
+
+function syncLegacyLessonStudents() {
+  db.exec(`
+    INSERT OR IGNORE INTO lesson_students (lesson_id, student_id)
+    SELECT lessons.id, lessons.student_id
+    FROM lessons
+    INNER JOIN students ON students.id = lessons.student_id
+    WHERE lessons.student_id IS NOT NULL
+  `);
 }
 
 function seedDatabase() {
@@ -360,13 +379,15 @@ function getSummary() {
   const paidTotal = db.prepare("SELECT COALESCE(SUM(amount), 0) AS total FROM payments WHERE status = 'paid'").get().total;
 
   const nextLessons = db.prepare(`
-    SELECT lessons.*, students.full_name AS student_name
+    SELECT lessons.*,
+           COALESCE(student_links.student_name, '') AS student_name,
+           COALESCE(student_links.student_ids_csv, '') AS student_ids_csv
     FROM lessons
-    LEFT JOIN students ON students.id = lessons.student_id
+    ${lessonStudentLinksSql()}
     WHERE lessons.status = 'planned'
     ORDER BY lessons.lesson_date ASC
     LIMIT 5
-  `).all();
+  `).all().map(hydrateLesson);
 
   return {
     activeStudents,
@@ -437,7 +458,7 @@ function listLessons(searchParams) {
   const where = [];
 
   if (q) {
-    where.push("(lessons.title LIKE ? OR lessons.topic LIKE ? OR lessons.homework LIKE ? OR lessons.notes LIKE ? OR students.full_name LIKE ?)");
+    where.push("(lessons.title LIKE ? OR lessons.topic LIKE ? OR lessons.homework LIKE ? OR lessons.notes LIKE ? OR student_links.student_name LIKE ?)");
     const like = `%${q}%`;
     params.push(like, like, like, like, like);
   }
@@ -448,75 +469,130 @@ function listLessons(searchParams) {
   }
 
   if (studentId > 0) {
-    where.push("lessons.student_id = ?");
+    where.push("EXISTS (SELECT 1 FROM lesson_students WHERE lesson_students.lesson_id = lessons.id AND lesson_students.student_id = ?)");
     params.push(studentId);
   }
 
   return db.prepare(`
-    SELECT lessons.*, students.full_name AS student_name
+    SELECT lessons.*,
+           COALESCE(student_links.student_name, '') AS student_name,
+           COALESCE(student_links.student_ids_csv, '') AS student_ids_csv
     FROM lessons
-    LEFT JOIN students ON students.id = lessons.student_id
+    ${lessonStudentLinksSql()}
     ${where.length ? `WHERE ${where.join(" AND ")}` : ""}
     ORDER BY lessons.lesson_date DESC, lessons.id DESC
-  `).all(...params);
+  `).all(...params).map(hydrateLesson);
 }
 
 function createLesson(body) {
   const data = normalizeLesson(body);
   const createdAt = now();
-  const result = db.prepare(`
-    INSERT INTO lessons
-      (student_id, title, lesson_date, duration_minutes, format, status, topic, homework, materials, notes, created_at, updated_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `).run(
-    data.student_id,
-    data.title,
-    data.lesson_date,
-    data.duration_minutes,
-    data.format,
-    data.status,
-    data.topic,
-    data.homework,
-    data.materials,
-    data.notes,
-    createdAt,
-    createdAt
-  );
-  return findLesson(result.lastInsertRowid);
+  const lessonId = withTransaction(() => {
+    const result = db.prepare(`
+      INSERT INTO lessons
+        (student_id, title, lesson_date, duration_minutes, format, status, topic, homework, materials, notes, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(
+      data.student_id,
+      data.title,
+      data.lesson_date,
+      data.duration_minutes,
+      data.format,
+      data.status,
+      data.topic,
+      data.homework,
+      data.materials,
+      data.notes,
+      createdAt,
+      createdAt
+    );
+    saveLessonStudents(result.lastInsertRowid, data.student_ids);
+    return result.lastInsertRowid;
+  });
+  return findLesson(lessonId);
 }
 
 function updateLesson(id, body) {
   assertId(id);
   const data = normalizeLesson(body);
-  db.prepare(`
-    UPDATE lessons
-    SET student_id = ?, title = ?, lesson_date = ?, duration_minutes = ?, format = ?,
-        status = ?, topic = ?, homework = ?, materials = ?, notes = ?, updated_at = ?
-    WHERE id = ?
-  `).run(
-    data.student_id,
-    data.title,
-    data.lesson_date,
-    data.duration_minutes,
-    data.format,
-    data.status,
-    data.topic,
-    data.homework,
-    data.materials,
-    data.notes,
-    now(),
-    id
-  );
+  withTransaction(() => {
+    db.prepare(`
+      UPDATE lessons
+      SET student_id = ?, title = ?, lesson_date = ?, duration_minutes = ?, format = ?,
+          status = ?, topic = ?, homework = ?, materials = ?, notes = ?, updated_at = ?
+      WHERE id = ?
+    `).run(
+      data.student_id,
+      data.title,
+      data.lesson_date,
+      data.duration_minutes,
+      data.format,
+      data.status,
+      data.topic,
+      data.homework,
+      data.materials,
+      data.notes,
+      now(),
+      id
+    );
+    saveLessonStudents(id, data.student_ids);
+  });
   return findLesson(id);
 }
 
+function lessonStudentLinksSql() {
+  return `
+    LEFT JOIN (
+      SELECT lesson_id,
+             group_concat(full_name, ', ') AS student_name,
+             group_concat(id, ',') AS student_ids_csv
+      FROM (
+        SELECT lesson_students.lesson_id, students.id, students.full_name
+        FROM lesson_students
+        INNER JOIN students ON students.id = lesson_students.student_id
+        ORDER BY students.full_name COLLATE NOCASE
+      )
+      GROUP BY lesson_id
+    ) AS student_links ON student_links.lesson_id = lessons.id
+  `;
+}
+
+function hydrateLesson(lesson) {
+  if (!lesson) return lesson;
+  const studentIds = String(lesson.student_ids_csv || "")
+    .split(",")
+    .map((id) => Number(id))
+    .filter((id) => Number.isInteger(id) && id > 0);
+  const fallbackId = Number(lesson.student_id || 0);
+  const ids = studentIds.length
+    ? studentIds
+    : (fallbackId > 0 ? [fallbackId] : []);
+  const { student_ids_csv, ...rest } = lesson;
+  return {
+    ...rest,
+    student_id: ids[0] || null,
+    student_ids: ids,
+    student_count: ids.length
+  };
+}
+
+function saveLessonStudents(lessonId, studentIds) {
+  assertId(Number(lessonId));
+  db.prepare("DELETE FROM lesson_students WHERE lesson_id = ?").run(Number(lessonId));
+  const insert = db.prepare("INSERT OR IGNORE INTO lesson_students (lesson_id, student_id) VALUES (?, ?)");
+  studentIds.forEach((studentId) => insert.run(Number(lessonId), Number(studentId)));
+}
+
 function findLesson(id) {
-  return db.prepare(`
-    SELECT lessons.*, students.full_name AS student_name
+  const lesson = db.prepare(`
+    SELECT lessons.*,
+           COALESCE(student_links.student_name, '') AS student_name,
+           COALESCE(student_links.student_ids_csv, '') AS student_ids_csv
     FROM lessons
-    LEFT JOIN students ON students.id = lessons.student_id
+    ${lessonStudentLinksSql()}
     WHERE lessons.id = ?
   `).get(Number(id));
+  return hydrateLesson(lesson);
 }
 
 function listPayments() {
@@ -606,9 +682,10 @@ function normalizeLesson(body) {
     throw httpError(400, "Dars formati noto'g'ri.");
   }
 
-  const studentId = Number(body.student_id || 0);
+  const studentIds = normalizeStudentIds(body);
   return {
-    student_id: studentId > 0 ? studentId : null,
+    student_id: studentIds[0] || null,
+    student_ids: studentIds,
     title: requireText(body.title, "Dars nomi", 180),
     lesson_date: requireText(body.lesson_date, "Dars vaqti", 40),
     duration_minutes: clampNumber(body.duration_minutes, 15, 480, 60),
@@ -619,6 +696,31 @@ function normalizeLesson(body) {
     materials: clean(body.materials || "", 800),
     notes: clean(body.notes || "", 1200)
   };
+}
+
+function normalizeStudentIds(body) {
+  const values = [];
+  const rawIds = Array.isArray(body.student_ids)
+    ? body.student_ids
+    : String(body.student_ids || "")
+      .split(",")
+      .map((item) => item.trim())
+      .filter(Boolean);
+
+  values.push(...rawIds);
+  if (body.student_id) values.unshift(body.student_id);
+
+  const ids = [...new Set(values
+    .map((value) => Number(value))
+    .filter((value) => Number.isInteger(value) && value > 0))];
+
+  if (!ids.length) return [];
+  const placeholders = ids.map(() => "?").join(", ");
+  const rows = db.prepare(`SELECT id FROM students WHERE id IN (${placeholders})`).all(...ids);
+  const found = new Set(rows.map((row) => Number(row.id)));
+  const missing = ids.filter((id) => !found.has(id));
+  if (missing.length) throw httpError(400, "Tanlangan o'quvchi topilmadi.");
+  return ids;
 }
 
 function normalizePayment(body) {
@@ -789,6 +891,18 @@ function clampNumber(value, min, max, fallback) {
 function assertId(id) {
   if (!Number.isInteger(Number(id)) || Number(id) <= 0) {
     throw httpError(400, "ID noto'g'ri.");
+  }
+}
+
+function withTransaction(callback) {
+  db.exec("BEGIN");
+  try {
+    const result = callback();
+    db.exec("COMMIT");
+    return result;
+  } catch (error) {
+    db.exec("ROLLBACK");
+    throw error;
   }
 }
 

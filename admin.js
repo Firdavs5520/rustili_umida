@@ -159,7 +159,7 @@ function renderDashboard() {
               <article class="timeline-item">
                 <time>${lessonTimeRange(lesson)}</time>
                 <strong>${esc(lesson.title)}</strong>
-                <span>${esc(lesson.student_name || "O'quvchi tanlanmagan")} - ${lessonFormatLabel(lesson.format)}</span>
+                <span>${esc(lessonStudentText(lesson))} - ${lessonFormatLabel(lesson.format)}</span>
               </article>
             `).join("")}
           </div>
@@ -319,13 +319,11 @@ function renderLessons() {
           <h2>${state.editing.lesson ? "Darsni tahrirlash" : "Yangi dars"}</h2>
           <button class="button secondary compact" type="button" data-reset-form="lesson">Tozalash</button>
         </div>
-        <label>
-          O'quvchi
-          <select name="student_id">
-            <option value="">Tanlanmagan</option>
-            ${studentOptions()}
-          </select>
-        </label>
+        <div class="field-group wide">
+          <span class="field-label">O'quvchilar</span>
+          ${studentPicker(state.editing.lesson)}
+          <p class="form-hint">Individual dars uchun bitta, guruh darsi uchun bir nechta o'quvchini belgilang.</p>
+        </div>
         <label>
           Dars nomi
           <input name="title" placeholder="Masalan: Fe'llar zamoni" required>
@@ -396,7 +394,7 @@ function renderLessons() {
                 <tr>
                   <th>Vaqt</th>
                   <th>Dars</th>
-                  <th>O'quvchi</th>
+                  <th>O'quvchilar</th>
                   <th>Status</th>
                   <th></th>
                 </tr>
@@ -1073,8 +1071,10 @@ function studentRow(student) {
 }
 
 function lessonRow(lesson) {
+  const studentText = lessonStudentText(lesson);
+  const studentCount = getLessonStudentIds(lesson).length || Number(lesson.student_count || 0);
   return `
-    <tr data-status="${esc(lesson.status)}" data-search="${searchText(lesson.title, lesson.student_name, lessonFormatLabel(lesson.format), lesson.topic, lesson.homework, lesson.notes)}">
+    <tr data-status="${esc(lesson.status)}" data-search="${searchText(lesson.title, studentText, lessonFormatLabel(lesson.format), lesson.topic, lesson.homework, lesson.notes)}">
       <td data-label="Vaqt">
         <strong>${lessonTimeRange(lesson)}</strong>
         <span>${esc(lesson.duration_minutes)} daqiqa</span>
@@ -1083,7 +1083,10 @@ function lessonRow(lesson) {
         <strong>${esc(lesson.title)}</strong>
         <span>${lessonFormatLabel(lesson.format)} - ${esc(lesson.topic || "-")}</span>
       </td>
-      <td data-label="O'quvchi">${esc(lesson.student_name || "Tanlanmagan")}</td>
+      <td data-label="O'quvchilar">
+        <strong>${esc(studentText)}</strong>
+        <span>${studentCount > 1 ? `${studentCount} nafar` : "Individual"}</span>
+      </td>
       <td data-label="Status">${badge(lesson.status)}</td>
       <td class="row-actions" data-label="Amallar">
         <button class="button secondary compact" type="button" data-action="edit-lesson" data-id="${lesson.id}">Edit</button>
@@ -1135,6 +1138,66 @@ function studentOptions() {
     .filter((student) => student.status !== "archived")
     .map((student) => `<option value="${student.id}">${esc(student.full_name)} - ${esc(student.level)}</option>`)
     .join("");
+}
+
+function studentPicker(lesson = null) {
+  const students = state.students.filter((student) => student.status !== "archived");
+  if (!students.length) {
+    return `<div class="student-picker is-empty">Avval o'quvchi qo'shing.</div>`;
+  }
+
+  const selected = new Set(getLessonStudentIds(lesson).map(String));
+  return `
+    <div class="student-picker" data-student-picker>
+      ${students.map((student) => `
+        <label class="student-picker-option">
+          <input
+            type="checkbox"
+            name="student_ids"
+            value="${esc(student.id)}"
+            ${selected.has(String(student.id)) ? "checked" : ""}
+          >
+          <span>
+            <strong>${esc(student.full_name)}</strong>
+            <small>${esc(student.level)} - ${esc(student.status === "paused" ? "Pauza" : "Faol")}</small>
+          </span>
+        </label>
+      `).join("")}
+    </div>
+  `;
+}
+
+function getLessonStudentIds(lesson = null) {
+  if (!lesson) return [];
+  const rawIds = Array.isArray(lesson.student_ids)
+    ? lesson.student_ids
+    : String(lesson.student_ids || "")
+      .split(",")
+      .map((item) => item.trim())
+      .filter(Boolean);
+  if (lesson.student_id) rawIds.unshift(lesson.student_id);
+  return [...new Set(rawIds
+    .map((id) => Number(id))
+    .filter((id) => Number.isInteger(id) && id > 0))];
+}
+
+function lessonStudentText(lesson) {
+  const names = cleanStudentNameList(lesson.student_name);
+  if (names) return names;
+  const ids = getLessonStudentIds(lesson);
+  const fallbackNames = ids
+    .map((id) => state.students.find((student) => String(student.id) === String(id))?.full_name)
+    .filter(Boolean)
+    .join(", ");
+  return fallbackNames || "Tanlanmagan";
+}
+
+function cleanStudentNameList(value) {
+  return String(value || "")
+    .split(",")
+    .map((name) => name.trim())
+    .filter(Boolean)
+    .join(", ");
 }
 
 function lessonFormatOptions() {
@@ -1199,6 +1262,7 @@ function emptyState() {
 
 function fillForm(form, data) {
   Object.entries(data).forEach(([key, value]) => {
+    if (key === "student_ids") return;
     const field = form.elements[key];
     if (!field) return;
     if (field.dataset?.datetimeInput !== undefined) {
@@ -1217,6 +1281,7 @@ function fillForm(form, data) {
 
 function fillLessonComputedFields(form, lesson) {
   if (!form) return;
+  syncLessonStudentPicker(form, lesson);
 
   const formatField = form.elements.format;
   if (formatField && !formatField.value) {
@@ -1235,14 +1300,27 @@ function fillLessonComputedFields(form, lesson) {
   }
 }
 
+function syncLessonStudentPicker(form, lesson) {
+  const selected = new Set(getLessonStudentIds(lesson).map(String));
+  $$('input[name="student_ids"]', form).forEach((input) => {
+    input.checked = selected.has(String(input.value));
+  });
+}
+
 function lessonFormToJson(form) {
-  const data = Object.fromEntries(new FormData(form).entries());
+  const formData = new FormData(form);
+  const data = Object.fromEntries(formData.entries());
+  const studentIds = formData.getAll("student_ids")
+    .map((id) => Number(id))
+    .filter((id) => Number.isInteger(id) && id > 0);
   const lessonDay = normalizeDateInput(data.lesson_day, "Dars sanasini 24.07.2026 ko'rinishida kiriting.");
   const lessonStart = normalizeTimeInput(data.lesson_start, "Boshlanish vaqtini 14:00 ko'rinishida kiriting.");
   data.lesson_date = `${lessonDay}T${lessonStart}`;
   data.lesson_end = normalizeTimeInput(data.lesson_end, "Tugash vaqtini 15:00 ko'rinishida kiriting.");
   data.format = normalizeLessonFormat(data.format);
   data.duration_minutes = getLessonDuration(data.lesson_date, data.lesson_end, data.duration_minutes);
+  data.student_ids = [...new Set(studentIds)];
+  data.student_id = data.student_ids[0] || "";
   delete data.lesson_day;
   delete data.lesson_start;
   return JSON.stringify(data);
@@ -1487,7 +1565,7 @@ function checkLessonReminders() {
 }
 
 function sendLessonNotification(lesson, title) {
-  const student = lesson.student_name || "O'quvchi tanlanmagan";
+  const student = lessonStudentText(lesson);
   const body = `${lessonTimeRange(lesson)} | ${student} | ${label(lesson.format)} | ${lesson.title}`;
   sendNotification(title, body);
 }
@@ -1652,10 +1730,19 @@ function nextClientId(store, collection) {
 }
 
 function withStudentNames(items, students) {
-  return items.map((item) => ({
-    ...item,
-    student_name: students.find((student) => String(student.id) === String(item.student_id))?.full_name || ""
-  }));
+  return items.map((item) => {
+    const studentIds = getLessonStudentIds(item);
+    return {
+      ...item,
+      student_id: studentIds[0] || item.student_id || "",
+      student_ids: studentIds,
+      student_count: studentIds.length,
+      student_name: studentIds
+        .map((id) => students.find((student) => String(student.id) === String(id))?.full_name)
+        .filter(Boolean)
+        .join(", ")
+    };
+  });
 }
 
 async function handleClientApi(url, options = {}) {
@@ -1695,9 +1782,11 @@ async function handleClientApi(url, options = {}) {
   }
 
   if (pathname === "/api/lessons" && method === "POST") {
+    const studentIds = normalizeClientStudentIds(body);
     store.lessons.unshift({
       id: nextClientId(store, "lessons"),
-      student_id: body.student_id || "",
+      student_id: studentIds[0] || "",
+      student_ids: studentIds,
       title: body.title || "",
       lesson_date: body.lesson_date || timestamp,
       lesson_end: body.lesson_end || "",
@@ -1717,8 +1806,11 @@ async function handleClientApi(url, options = {}) {
 
   const lessonMatch = pathname.match(/^\/api\/lessons\/(\d+)$/);
   if (lessonMatch && method === "PUT") {
+    const studentIds = normalizeClientStudentIds(body);
     updateClientItem(store, "lessons", Number(lessonMatch[1]), {
       ...body,
+      student_id: studentIds[0] || "",
+      student_ids: studentIds,
       format: normalizeLessonFormat(body.format),
       duration_minutes: Number(body.duration_minutes || 60),
       updated_at: timestamp
@@ -1802,6 +1894,19 @@ function parseClientBody(body) {
   } catch {
     return {};
   }
+}
+
+function normalizeClientStudentIds(body) {
+  const values = [];
+  if (Array.isArray(body.student_ids)) {
+    values.push(...body.student_ids);
+  } else {
+    values.push(...String(body.student_ids || "").split(","));
+  }
+  if (body.student_id) values.unshift(body.student_id);
+  return [...new Set(values
+    .map((id) => Number(id))
+    .filter((id) => Number.isInteger(id) && id > 0))];
 }
 
 function updateClientItem(store, collection, id, values) {
