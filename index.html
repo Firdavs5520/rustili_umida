@@ -17,7 +17,30 @@
     <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
     <link rel="stylesheet" href="/styles.css">
   </head>
-  <body class="public-page">
+  <body class="public-page is-loading">
+    <div class="page-loader" data-page-loader aria-hidden="true">
+      <div class="loader-stage">
+        <span class="loader-mark" aria-hidden="true"></span>
+        <div class="loader-book" aria-hidden="true">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+        <p>Umida Rus Tili</p>
+        <strong>Darslar ochilmoqda</strong>
+        <div class="loader-progress" aria-hidden="true"><span></span></div>
+      </div>
+    </div>
+
+    <div class="language-loader" data-language-loader aria-hidden="true">
+      <div class="language-loader-card">
+        <span class="language-loader-mark" aria-hidden="true"></span>
+        <p>Til almashtirilmoqda</p>
+        <strong data-language-loader-text>UZ -> RU</strong>
+        <div class="language-loader-line" aria-hidden="true"><span></span></div>
+      </div>
+    </div>
+
     <header class="site-header" data-header>
       <a class="brand" href="#top" aria-label="Bosh sahifa">
         <span class="brand-mark">RU</span>

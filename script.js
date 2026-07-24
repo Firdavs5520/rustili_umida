@@ -4,8 +4,14 @@ const navLinks = document.querySelectorAll(".site-nav a");
 const leadForm = document.querySelector("#leadForm");
 const statusLine = document.querySelector(".form-status");
 const goalSelect = leadForm?.querySelector('select[name="goal"]');
+const pageLoader = document.querySelector("[data-page-loader]");
+const languageLoader = document.querySelector("[data-language-loader]");
+const languageLoaderText = document.querySelector("[data-language-loader-text]");
 const TELEGRAM_URL = "https://t.me/rustili_umiida";
 const LANG_STORAGE_KEY = "umida-rus-tili-lang";
+const INTRO_MIN_DURATION = 1250;
+const LANGUAGE_TRANSITION_IN = 360;
+const LANGUAGE_TRANSITION_OUT = 620;
 const langButtons = document.querySelectorAll("[data-lang-switch]");
 const translations = {
   uz: {
@@ -312,8 +318,10 @@ const goalOptions = [
   { value: "group", uz: "Guruhga yozilish", ru: "Запись в группу" }
 ];
 let currentLang = getSavedLanguage();
+let languageTransitionActive = false;
 
 setupLanguage();
+setupIntroLoader();
 setupPremiumMotion();
 
 menuToggle?.addEventListener("click", () => {
@@ -421,16 +429,63 @@ function setupLanguage() {
     button.addEventListener("click", () => {
       const nextLang = button.dataset.langSwitch;
       if (!translations[nextLang]) return;
+      if (nextLang === currentLang || languageTransitionActive) return;
 
-      currentLang = nextLang;
-      try {
-        localStorage.setItem(LANG_STORAGE_KEY, currentLang);
-      } catch {
-        // Ignore private-mode storage errors.
-      }
-      applyLanguage(currentLang);
+      transitionLanguage(nextLang);
     });
   });
+}
+
+function setupIntroLoader() {
+  if (!pageLoader) {
+    document.body.classList.remove("is-loading");
+    return;
+  }
+
+  const startedAt = performance.now();
+  const hideLoader = () => {
+    const elapsed = performance.now() - startedAt;
+    const delay = Math.max(260, INTRO_MIN_DURATION - elapsed);
+
+    window.setTimeout(() => {
+      pageLoader.classList.add("is-done");
+      document.body.classList.remove("is-loading");
+    }, delay);
+  };
+
+  if (document.readyState === "complete") {
+    hideLoader();
+  } else {
+    window.addEventListener("load", hideLoader, { once: true });
+  }
+}
+
+async function transitionLanguage(nextLang) {
+  const previousLang = currentLang;
+  languageTransitionActive = true;
+  languageLoaderText && (languageLoaderText.textContent = `${previousLang.toUpperCase()} -> ${nextLang.toUpperCase()}`);
+  languageLoader?.setAttribute("aria-hidden", "false");
+  languageLoader?.classList.add("is-active");
+  document.body.classList.add("is-language-transition");
+
+  await wait(LANGUAGE_TRANSITION_IN);
+
+  currentLang = nextLang;
+  try {
+    localStorage.setItem(LANG_STORAGE_KEY, currentLang);
+  } catch {
+    // Ignore private-mode storage errors.
+  }
+  applyLanguage(currentLang);
+
+  await wait(LANGUAGE_TRANSITION_OUT);
+
+  languageLoader?.classList.remove("is-active");
+  document.body.classList.remove("is-language-transition");
+  window.setTimeout(() => {
+    languageLoader?.setAttribute("aria-hidden", "true");
+  }, 700);
+  languageTransitionActive = false;
 }
 
 function applyLanguage(lang) {
@@ -590,6 +645,12 @@ function getSavedLanguage() {
 
 function t(path, lang = currentLang) {
   return path.split(".").reduce((value, key) => value?.[key], translations[lang]) || "";
+}
+
+function wait(ms) {
+  return new Promise((resolve) => {
+    window.setTimeout(resolve, ms);
+  });
 }
 
 function setupPremiumMotion() {
