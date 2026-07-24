@@ -308,6 +308,7 @@ function renderStudents() {
   `;
 
   if (state.editing.student) fillForm($("#studentForm"), state.editing.student);
+  enhanceAdminControls($("#studentsPanel"));
 }
 
 function renderLessons() {
@@ -331,11 +332,11 @@ function renderLessons() {
         </label>
         <label>
           Boshlanish vaqti
-          <input name="lesson_date" type="datetime-local" required>
+          <input name="lesson_date" type="text" inputmode="numeric" autocomplete="off" data-datetime-input placeholder="24.07.2026 14:00" required>
         </label>
         <label>
           Tugash vaqti
-          <input name="lesson_end" type="time" required>
+          <input name="lesson_end" type="text" inputmode="numeric" autocomplete="off" data-time-input placeholder="15:00" required>
           <input name="duration_minutes" type="hidden" value="60">
         </label>
         <label>
@@ -411,6 +412,7 @@ function renderLessons() {
     fillForm(lessonForm, state.editing.lesson);
     fillLessonComputedFields(lessonForm, state.editing.lesson);
   }
+  enhanceAdminControls($("#lessonsPanel"));
 }
 
 function renderPayments() {
@@ -433,11 +435,11 @@ function renderPayments() {
         </label>
         <label>
           Sana
-          <input name="paid_at" type="date" value="${today()}" required>
+          <input name="paid_at" type="text" inputmode="numeric" autocomplete="off" data-date-input value="${dateInputDisplay(today())}" placeholder="24.07.2026" required>
         </label>
         <label>
           To'lov vaqti
-          <input name="payment_time" type="time" value="${PAYMENT_DEFAULT_TIME}" required>
+          <input name="payment_time" type="text" inputmode="numeric" autocomplete="off" data-time-input value="${PAYMENT_DEFAULT_TIME}" placeholder="09:00" required>
         </label>
         <label>
           Usul
@@ -494,6 +496,7 @@ function renderPayments() {
       </section>
     </div>
   `;
+  enhanceAdminControls($("#paymentsPanel"));
 }
 
 function renderLeads() {
@@ -532,6 +535,7 @@ function renderLeads() {
       ` : emptyState()}
     </section>
   `;
+  enhanceAdminControls($("#leadsPanel"));
 }
 
 async function handlePanelSubmit(event) {
@@ -568,7 +572,7 @@ async function handlePanelSubmit(event) {
     if (form.id === "paymentForm") {
       await fetchJson("/api/payments", {
         method: "POST",
-        body: formToJson(form)
+        body: paymentFormToJson(form)
       });
       form.reset();
       await loadAll();
@@ -580,6 +584,20 @@ async function handlePanelSubmit(event) {
 }
 
 async function handlePanelClick(event) {
+  const selectToggle = event.target.closest("[data-custom-select-toggle]");
+  if (selectToggle) {
+    toggleCustomSelect(selectToggle);
+    return;
+  }
+
+  const selectOption = event.target.closest("[data-custom-select-option]");
+  if (selectOption) {
+    chooseCustomSelectOption(selectOption);
+    return;
+  }
+
+  if (!event.target.closest(".custom-select")) closeCustomSelects();
+
   const button = event.target.closest("button");
   if (!button) return;
 
@@ -683,6 +701,120 @@ function handleLocalFilter(event) {
     const matchesStatus = !status || row.dataset.status === status;
     row.hidden = !(matchesSearch && matchesStatus);
   });
+}
+
+function enhanceAdminControls(root = document) {
+  $$("select:not([data-select-enhanced])", root).forEach(enhanceCustomSelect);
+  $$("[data-date-input], [data-time-input], [data-datetime-input]", root).forEach(enhanceDateTimeInput);
+}
+
+function enhanceCustomSelect(select) {
+  select.dataset.selectEnhanced = "true";
+  select.classList.add("native-select");
+  select.tabIndex = -1;
+  select.setAttribute("aria-hidden", "true");
+
+  const wrapper = document.createElement("div");
+  wrapper.className = "custom-select";
+
+  const trigger = document.createElement("button");
+  trigger.type = "button";
+  trigger.className = "custom-select-trigger";
+  trigger.dataset.customSelectToggle = "";
+  trigger.setAttribute("aria-haspopup", "listbox");
+  trigger.setAttribute("aria-expanded", "false");
+
+  const list = document.createElement("div");
+  list.className = "custom-select-list";
+  list.setAttribute("role", "listbox");
+
+  [...select.options].forEach((option) => {
+    const item = document.createElement("button");
+    item.type = "button";
+    item.className = "custom-select-option";
+    item.dataset.customSelectOption = option.value;
+    item.setAttribute("role", "option");
+    item.textContent = option.textContent;
+    list.append(item);
+  });
+
+  wrapper.append(trigger, list);
+  select.insertAdjacentElement("afterend", wrapper);
+  syncCustomSelect(select);
+}
+
+function toggleCustomSelect(trigger) {
+  const wrapper = trigger.closest(".custom-select");
+  const isOpen = wrapper.classList.contains("open");
+  closeCustomSelects(wrapper);
+  wrapper.classList.toggle("open", !isOpen);
+  trigger.setAttribute("aria-expanded", String(!isOpen));
+}
+
+function chooseCustomSelectOption(optionButton) {
+  const wrapper = optionButton.closest(".custom-select");
+  const select = wrapper?.previousElementSibling;
+  if (!select) return;
+
+  select.value = optionButton.dataset.customSelectOption || "";
+  syncCustomSelect(select);
+  select.dispatchEvent(new Event("change", { bubbles: true }));
+  closeCustomSelects();
+}
+
+function closeCustomSelects(except = null) {
+  $$(".custom-select.open").forEach((wrapper) => {
+    if (wrapper === except) return;
+    wrapper.classList.remove("open");
+    $("[data-custom-select-toggle]", wrapper)?.setAttribute("aria-expanded", "false");
+  });
+}
+
+function syncCustomSelect(select) {
+  const wrapper = select.nextElementSibling;
+  if (!wrapper?.classList.contains("custom-select")) return;
+
+  const selected = select.options[select.selectedIndex] || select.options[0];
+  const trigger = $("[data-custom-select-toggle]", wrapper);
+  if (trigger) trigger.textContent = selected?.textContent || "Tanlang";
+
+  $$("[data-custom-select-option]", wrapper).forEach((button) => {
+    const isSelected = button.dataset.customSelectOption === select.value;
+    button.classList.toggle("is-selected", isSelected);
+    button.setAttribute("aria-selected", String(isSelected));
+  });
+}
+
+function enhanceDateTimeInput(input) {
+  if (input.dataset.dateTimeEnhanced) return;
+  input.dataset.dateTimeEnhanced = "true";
+
+  input.addEventListener("input", () => {
+    const kind = input.dataset.datetimeInput !== undefined
+      ? "datetime"
+      : input.dataset.dateInput !== undefined
+        ? "date"
+        : "time";
+    input.value = maskDateTimeValue(input.value, kind);
+  });
+}
+
+function maskDateTimeValue(value, kind) {
+  const digits = String(value || "").replace(/\D/g, "");
+  if (kind === "time") return joinParts(digits.slice(0, 4), [2], ":");
+  if (kind === "date") return joinParts(digits.slice(0, 8), [2, 4], ".");
+  return `${joinParts(digits.slice(0, 8), [2, 4], ".")}${digits.length > 8 ? ` ${joinParts(digits.slice(8, 12), [2], ":")}` : ""}`;
+}
+
+function joinParts(value, splitAt, separator) {
+  const parts = [];
+  let start = 0;
+  splitAt.forEach((end) => {
+    if (value.length > start) parts.push(value.slice(start, Math.min(end, value.length)));
+    start = end;
+  });
+  if (value.length > start) parts.push(value.slice(start));
+  return parts.join(separator);
 }
 
 function studentRow(student) {
@@ -832,7 +964,13 @@ function fillForm(form, data) {
   Object.entries(data).forEach(([key, value]) => {
     const field = form.elements[key];
     if (!field) return;
-    field.value = value ?? "";
+    if (field.dataset?.datetimeInput !== undefined) {
+      field.value = dateTimeInputDisplay(value);
+    } else if (field.dataset?.dateInput !== undefined) {
+      field.value = dateInputDisplay(value);
+    } else {
+      field.value = value ?? "";
+    }
   });
 }
 
@@ -852,9 +990,96 @@ function fillLessonComputedFields(form, lesson) {
 
 function lessonFormToJson(form) {
   const data = Object.fromEntries(new FormData(form).entries());
+  data.lesson_date = normalizeDateTimeInput(data.lesson_date, "Boshlanish vaqtini 24.07.2026 14:00 ko'rinishida kiriting.");
+  data.lesson_end = normalizeTimeInput(data.lesson_end, "Tugash vaqtini 15:00 ko'rinishida kiriting.");
   data.format = normalizeLessonFormat(data.format);
   data.duration_minutes = getLessonDuration(data.lesson_date, data.lesson_end, data.duration_minutes);
   return JSON.stringify(data);
+}
+
+function paymentFormToJson(form) {
+  const data = Object.fromEntries(new FormData(form).entries());
+  data.paid_at = normalizeDateInput(data.paid_at, "To'lov sanasini 24.07.2026 ko'rinishida kiriting.");
+  data.payment_time = normalizeTimeInput(data.payment_time, "To'lov vaqtini 09:00 ko'rinishida kiriting.");
+  return JSON.stringify(data);
+}
+
+function normalizeDateTimeInput(value, message) {
+  const raw = String(value || "").trim();
+  if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(raw)) return raw;
+
+  const match = raw.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})\s+(\d{1,2}):(\d{1,2})$/);
+  if (!match) throw new Error(message);
+
+  const [, day, month, year, hour, minute] = match;
+  const date = buildCheckedDate(year, month, day, hour, minute, message);
+  return `${formatMachineDate(date)}T${formatMachineTime(date)}`;
+}
+
+function normalizeDateInput(value, message) {
+  const raw = String(value || "").trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) return raw;
+
+  const match = raw.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/);
+  if (!match) throw new Error(message);
+
+  const [, day, month, year] = match;
+  const date = buildCheckedDate(year, month, day, 0, 0, message);
+  return formatMachineDate(date);
+}
+
+function normalizeTimeInput(value, message) {
+  const raw = String(value || "").trim();
+  const match = raw.match(/^(\d{1,2}):(\d{1,2})$/);
+  if (!match) throw new Error(message);
+
+  const hour = Number(match[1]);
+  const minute = Number(match[2]);
+  if (hour > 23 || minute > 59) throw new Error(message);
+  return `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
+}
+
+function buildCheckedDate(year, month, day, hour, minute, message) {
+  const numbers = [year, month, day, hour, minute].map(Number);
+  if (numbers.some((item) => Number.isNaN(item))) throw new Error(message);
+
+  const [yyyy, mm, dd, hh, min] = numbers;
+  const date = new Date(yyyy, mm - 1, dd, hh, min, 0, 0);
+  if (
+    date.getFullYear() !== yyyy ||
+    date.getMonth() !== mm - 1 ||
+    date.getDate() !== dd ||
+    date.getHours() !== hh ||
+    date.getMinutes() !== min
+  ) {
+    throw new Error(message);
+  }
+  return date;
+}
+
+function dateTimeInputDisplay(value) {
+  const date = parseLessonDate(value);
+  if (!date) return value || "";
+  return `${formatDisplayDate(date)} ${formatMachineTime(date)}`;
+}
+
+function dateInputDisplay(value) {
+  if (!value) return "";
+  const date = new Date(`${String(value).slice(0, 10)}T00:00`);
+  if (Number.isNaN(date.getTime())) return value;
+  return formatDisplayDate(date);
+}
+
+function formatDisplayDate(date) {
+  return `${String(date.getDate()).padStart(2, "0")}.${String(date.getMonth() + 1).padStart(2, "0")}.${date.getFullYear()}`;
+}
+
+function formatMachineDate(date) {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+}
+
+function formatMachineTime(date) {
+  return `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
 }
 
 function normalizeLessonFormat(value) {
