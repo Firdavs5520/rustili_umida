@@ -1092,6 +1092,208 @@ textarea:focus {
   box-shadow: 0 10px 22px rgba(86, 0, 10, 0.16);
 }
 
+.calendar-control {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+}
+
+.calendar-control input {
+  padding-right: 52px;
+}
+
+.calendar-toggle {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.88), rgba(255, 232, 228, 0.74));
+  border: 1px solid rgba(143, 6, 20, 0.16);
+  border-radius: 14px;
+  box-shadow: 0 8px 18px rgba(86, 0, 10, 0.09);
+  transform: translateY(-50%);
+  cursor: pointer;
+}
+
+.calendar-toggle::before,
+.calendar-toggle::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.calendar-toggle::before {
+  top: 9px;
+  width: 15px;
+  height: 14px;
+  border: 2px solid #7f0712;
+  border-radius: 5px;
+}
+
+.calendar-toggle::after {
+  top: 13px;
+  width: 15px;
+  height: 2px;
+  background: #7f0712;
+  box-shadow:
+    -4px -5px 0 -1px #7f0712,
+    4px -5px 0 -1px #7f0712;
+}
+
+.calendar-control.open input,
+.calendar-control input:focus {
+  border-color: var(--blue);
+  box-shadow:
+    0 0 0 3px rgba(167, 5, 13, 0.12),
+    0 14px 32px rgba(86, 0, 10, 0.1);
+}
+
+.calendar-control.open .calendar-toggle,
+.calendar-toggle:focus-visible {
+  background:
+    linear-gradient(135deg, #b01628, #8f0614 54%, #65000a);
+  outline: none;
+}
+
+.calendar-control.open .calendar-toggle::before,
+.calendar-toggle:focus-visible::before {
+  border-color: #fff8f6;
+}
+
+.calendar-control.open .calendar-toggle::after,
+.calendar-toggle:focus-visible::after {
+  background: #fff8f6;
+  box-shadow:
+    -4px -5px 0 -1px #fff8f6,
+    4px -5px 0 -1px #fff8f6;
+}
+
+.calendar-popover {
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 0;
+  z-index: 55;
+  width: min(326px, calc(100vw - 32px));
+  padding: 12px;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-8px) scale(0.98);
+  transform-origin: top left;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.92), rgba(255, 235, 231, 0.84)),
+    rgba(255, 249, 247, 0.94);
+  border: 1px solid rgba(143, 6, 20, 0.16);
+  border-radius: 20px;
+  box-shadow:
+    0 26px 62px rgba(86, 0, 10, 0.2),
+    0 1px 0 rgba(255, 255, 255, 0.78) inset;
+  -webkit-backdrop-filter: blur(20px) saturate(175%);
+  backdrop-filter: blur(20px) saturate(175%);
+  pointer-events: none;
+  transition:
+    opacity 170ms ease,
+    transform 170ms ease,
+    visibility 170ms step-end;
+}
+
+.calendar-control.open .calendar-popover {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+  transition:
+    opacity 170ms ease,
+    transform 170ms ease,
+    visibility 170ms step-start;
+}
+
+.calendar-head {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr) 36px;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.calendar-head strong {
+  color: #5f000a;
+  font-size: 0.98rem;
+  text-align: center;
+}
+
+.calendar-nav,
+.calendar-day {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  color: #5f000a;
+  font: inherit;
+  font-weight: 800;
+  background: rgba(255, 255, 255, 0.58);
+  border: 1px solid transparent;
+  cursor: pointer;
+}
+
+.calendar-nav {
+  width: 36px;
+  height: 36px;
+  border-radius: 13px;
+  font-size: 1.3rem;
+}
+
+.calendar-week,
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 5px;
+}
+
+.calendar-week {
+  margin-bottom: 6px;
+  color: var(--muted);
+  font-size: 0.68rem;
+  font-weight: 900;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.calendar-day {
+  aspect-ratio: 1;
+  min-width: 0;
+  border-radius: 12px;
+  font-size: 0.88rem;
+}
+
+.calendar-nav:hover,
+.calendar-nav:focus-visible,
+.calendar-day:hover,
+.calendar-day:focus-visible {
+  color: #5f000a;
+  background: rgba(143, 6, 20, 0.09);
+  border-color: rgba(143, 6, 20, 0.08);
+  outline: none;
+}
+
+.calendar-day.is-muted {
+  color: rgba(95, 0, 10, 0.38);
+}
+
+.calendar-day.is-today {
+  border-color: rgba(143, 6, 20, 0.32);
+}
+
+.calendar-day.is-selected {
+  color: #fff8f6;
+  background:
+    linear-gradient(135deg, #b01628, #8f0614 54%, #65000a);
+  box-shadow: 0 10px 22px rgba(86, 0, 10, 0.16);
+}
+
 .form-status,
 .admin-feedback {
   min-height: 24px;
@@ -1381,7 +1583,10 @@ textarea:focus {
 .admin-page select,
 .admin-page textarea,
 .admin-page .custom-select-trigger,
-.admin-page .custom-select-option {
+.admin-page .custom-select-option,
+.admin-page .calendar-toggle,
+.admin-page .calendar-nav,
+.admin-page .calendar-day {
   transition:
     background-color 150ms ease,
     border-color 150ms ease,

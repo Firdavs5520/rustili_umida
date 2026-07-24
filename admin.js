@@ -331,8 +331,12 @@ function renderLessons() {
           <input name="title" placeholder="Masalan: Fe'llar zamoni" required>
         </label>
         <label>
+          Sana
+          <input name="lesson_day" type="text" inputmode="numeric" autocomplete="off" data-date-input data-calendar-input placeholder="24.07.2026" required>
+        </label>
+        <label>
           Boshlanish vaqti
-          <input name="lesson_date" type="text" inputmode="numeric" autocomplete="off" data-datetime-input placeholder="24.07.2026 14:00" required>
+          <input name="lesson_start" type="text" inputmode="numeric" autocomplete="off" data-time-input placeholder="14:00" required>
         </label>
         <label>
           Tugash vaqti
@@ -435,7 +439,7 @@ function renderPayments() {
         </label>
         <label>
           Sana
-          <input name="paid_at" type="text" inputmode="numeric" autocomplete="off" data-date-input value="${dateInputDisplay(today())}" placeholder="24.07.2026" required>
+          <input name="paid_at" type="text" inputmode="numeric" autocomplete="off" data-date-input data-calendar-input value="${dateInputDisplay(today())}" placeholder="24.07.2026" required>
         </label>
         <label>
           To'lov vaqti
@@ -584,6 +588,32 @@ async function handlePanelSubmit(event) {
 }
 
 async function handlePanelClick(event) {
+  const calendarInput = event.target.closest("[data-calendar-input]");
+  if (calendarInput) {
+    openCalendarFor(calendarInput);
+    return;
+  }
+
+  const calendarToggle = event.target.closest("[data-calendar-toggle]");
+  if (calendarToggle) {
+    toggleCalendar(calendarToggle);
+    return;
+  }
+
+  const calendarNav = event.target.closest("[data-calendar-nav]");
+  if (calendarNav) {
+    shiftCalendarMonth(calendarNav);
+    return;
+  }
+
+  const calendarDay = event.target.closest("[data-calendar-day]");
+  if (calendarDay) {
+    chooseCalendarDay(calendarDay);
+    return;
+  }
+
+  if (!event.target.closest(".calendar-control")) closeCalendars();
+
   const selectToggle = event.target.closest("[data-custom-select-toggle]");
   if (selectToggle) {
     toggleCustomSelect(selectToggle);
@@ -706,6 +736,7 @@ function handleLocalFilter(event) {
 function enhanceAdminControls(root = document) {
   $$("select:not([data-select-enhanced])", root).forEach(enhanceCustomSelect);
   $$("[data-date-input], [data-time-input], [data-datetime-input]", root).forEach(enhanceDateTimeInput);
+  $$("[data-calendar-input]:not([data-calendar-enhanced])", root).forEach(enhanceCalendarInput);
   $$('input[name="full_name"]:not([data-name-enhanced]), input[name="name"]:not([data-name-enhanced])', root).forEach(enhanceNameInput);
   $$('input[name="phone"]:not([data-phone-enhanced])', root).forEach(enhancePhoneInput);
 }
@@ -798,7 +829,173 @@ function enhanceDateTimeInput(input) {
         ? "date"
         : "time";
     input.value = maskDateTimeValue(input.value, kind);
+    if (input.dataset.calendarInput !== undefined && input.closest(".calendar-control.open")) {
+      renderCalendar(input, calendarMonthFromInput(input));
+    }
   });
+}
+
+function enhanceCalendarInput(input) {
+  input.dataset.calendarEnhanced = "true";
+
+  const wrapper = document.createElement("div");
+  wrapper.className = "calendar-control";
+  input.insertAdjacentElement("beforebegin", wrapper);
+  wrapper.append(input);
+
+  const toggle = document.createElement("button");
+  toggle.type = "button";
+  toggle.className = "calendar-toggle";
+  toggle.dataset.calendarToggle = "";
+  toggle.setAttribute("aria-label", "Kalendarni ochish");
+  toggle.setAttribute("aria-expanded", "false");
+
+  const popover = document.createElement("div");
+  popover.className = "calendar-popover";
+  popover.setAttribute("role", "dialog");
+  popover.setAttribute("aria-label", "Sana tanlash");
+
+  wrapper.append(toggle, popover);
+  renderCalendar(input, calendarMonthFromInput(input));
+  input.addEventListener("focus", () => openCalendarFor(input));
+}
+
+function toggleCalendar(toggle) {
+  const wrapper = toggle.closest(".calendar-control");
+  const input = $("[data-calendar-input]", wrapper);
+  if (!input) return;
+
+  const isOpen = wrapper.classList.contains("open");
+  if (isOpen) {
+    closeCalendars();
+  } else {
+    openCalendarFor(input);
+  }
+}
+
+function openCalendarFor(input) {
+  const wrapper = input.closest(".calendar-control");
+  if (!wrapper) return;
+
+  closeCustomSelects();
+  closeCalendars(wrapper);
+  renderCalendar(input, calendarMonthFromInput(input));
+  wrapper.classList.add("open");
+  $("[data-calendar-toggle]", wrapper)?.setAttribute("aria-expanded", "true");
+}
+
+function closeCalendars(except = null) {
+  $$(".calendar-control.open").forEach((wrapper) => {
+    if (wrapper === except) return;
+    wrapper.classList.remove("open");
+    $("[data-calendar-toggle]", wrapper)?.setAttribute("aria-expanded", "false");
+  });
+}
+
+function shiftCalendarMonth(button) {
+  const wrapper = button.closest(".calendar-control");
+  const input = $("[data-calendar-input]", wrapper);
+  if (!input) return;
+
+  const current = new Date(Number(input.dataset.calendarMonth || Date.now()));
+  current.setMonth(current.getMonth() + Number(button.dataset.calendarNav || 0));
+  renderCalendar(input, current);
+}
+
+function chooseCalendarDay(button) {
+  const wrapper = button.closest(".calendar-control");
+  const input = $("[data-calendar-input]", wrapper);
+  if (!input) return;
+
+  input.value = button.dataset.calendarDay || "";
+  input.dispatchEvent(new Event("input", { bubbles: true }));
+  input.dispatchEvent(new Event("change", { bubbles: true }));
+  renderCalendar(input, calendarMonthFromInput(input));
+  closeCalendars();
+}
+
+function renderCalendar(input, monthDate) {
+  const wrapper = input.closest(".calendar-control");
+  const popover = $(".calendar-popover", wrapper);
+  if (!popover) return;
+
+  const viewDate = new Date(monthDate.getFullYear(), monthDate.getMonth(), 1);
+  input.dataset.calendarMonth = String(viewDate.getTime());
+
+  const selected = parseDisplayDate(input.value);
+  const todayValue = formatDisplayDate(new Date());
+  const firstDayOffset = (viewDate.getDay() + 6) % 7;
+  const gridStart = new Date(viewDate);
+  gridStart.setDate(1 - firstDayOffset);
+
+  const days = Array.from({ length: 42 }, (_, index) => {
+    const day = new Date(gridStart);
+    day.setDate(gridStart.getDate() + index);
+    const value = formatDisplayDate(day);
+    const classes = [
+      "calendar-day",
+      day.getMonth() !== viewDate.getMonth() ? "is-muted" : "",
+      value === todayValue ? "is-today" : "",
+      selected && sameDate(day, selected) ? "is-selected" : ""
+    ].filter(Boolean).join(" ");
+
+    return `<button class="${classes}" type="button" data-calendar-day="${value}">${day.getDate()}</button>`;
+  }).join("");
+
+  popover.innerHTML = `
+    <div class="calendar-head">
+      <button class="calendar-nav" type="button" data-calendar-nav="-1" aria-label="Oldingi oy">‹</button>
+      <strong>${monthName(viewDate)} ${viewDate.getFullYear()}</strong>
+      <button class="calendar-nav" type="button" data-calendar-nav="1" aria-label="Keyingi oy">›</button>
+    </div>
+    <div class="calendar-week" aria-hidden="true">
+      <span>Du</span><span>Se</span><span>Cho</span><span>Pa</span><span>Ju</span><span>Sha</span><span>Ya</span>
+    </div>
+    <div class="calendar-grid">
+      ${days}
+    </div>
+  `;
+}
+
+function calendarMonthFromInput(input) {
+  const parsed = parseDisplayDate(input.value);
+  const fallback = parsed || new Date();
+  return new Date(fallback.getFullYear(), fallback.getMonth(), 1);
+}
+
+function parseDisplayDate(value) {
+  const raw = String(value || "").trim();
+  const iso = raw.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (iso) {
+    try {
+      return buildCheckedDate(iso[1], iso[2], iso[3], 0, 0, "");
+    } catch {
+      return null;
+    }
+  }
+
+  const match = raw.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/);
+  if (!match) return null;
+
+  try {
+    const [, day, month, year] = match;
+    return buildCheckedDate(year, month, day, 0, 0, "");
+  } catch {
+    return null;
+  }
+}
+
+function sameDate(left, right) {
+  return left.getFullYear() === right.getFullYear()
+    && left.getMonth() === right.getMonth()
+    && left.getDate() === right.getDate();
+}
+
+function monthName(date) {
+  return [
+    "Yanvar", "Fevral", "Mart", "Aprel", "May", "Iyun",
+    "Iyul", "Avgust", "Sentabr", "Oktabr", "Noyabr", "Dekabr"
+  ][date.getMonth()];
 }
 
 function enhanceNameInput(input) {
@@ -1026,6 +1223,12 @@ function fillLessonComputedFields(form, lesson) {
     formatField.value = normalizeLessonFormat(lesson.format);
   }
 
+  const startDate = parseLessonDate(lesson.lesson_date);
+  const dayField = form.elements.lesson_day;
+  const startField = form.elements.lesson_start;
+  if (startDate && dayField) dayField.value = formatDisplayDate(startDate);
+  if (startDate && startField) startField.value = formatMachineTime(startDate);
+
   const endField = form.elements.lesson_end;
   if (endField) {
     endField.value = lesson.lesson_end || getLessonEndValue(lesson);
@@ -1034,10 +1237,14 @@ function fillLessonComputedFields(form, lesson) {
 
 function lessonFormToJson(form) {
   const data = Object.fromEntries(new FormData(form).entries());
-  data.lesson_date = normalizeDateTimeInput(data.lesson_date, "Boshlanish vaqtini 24.07.2026 14:00 ko'rinishida kiriting.");
+  const lessonDay = normalizeDateInput(data.lesson_day, "Dars sanasini 24.07.2026 ko'rinishida kiriting.");
+  const lessonStart = normalizeTimeInput(data.lesson_start, "Boshlanish vaqtini 14:00 ko'rinishida kiriting.");
+  data.lesson_date = `${lessonDay}T${lessonStart}`;
   data.lesson_end = normalizeTimeInput(data.lesson_end, "Tugash vaqtini 15:00 ko'rinishida kiriting.");
   data.format = normalizeLessonFormat(data.format);
   data.duration_minutes = getLessonDuration(data.lesson_date, data.lesson_end, data.duration_minutes);
+  delete data.lesson_day;
+  delete data.lesson_start;
   return JSON.stringify(data);
 }
 
