@@ -1,18 +1,18 @@
 :root {
-  --ink: #132238;
-  --ink-2: #24364a;
-  --muted: #627285;
-  --blue: #1d5f8c;
-  --blue-dark: #16476a;
-  --coral: #d8664c;
-  --green: #32735f;
-  --paper: #f5f8fb;
-  --soft: #edf4f8;
+  --ink: #3a060b;
+  --ink-2: #5d1118;
+  --muted: #8a5a5e;
+  --blue: #a7050d;
+  --blue-dark: #880008;
+  --coral: #c94436;
+  --green: #357466;
+  --paper: #fff3f0;
+  --soft: #ffe4df;
   --white: #ffffff;
-  --line: #dce5ee;
+  --line: #f0c8c4;
   --danger: #b84242;
   --warning: #936c18;
-  --shadow: 0 18px 46px rgba(19, 34, 56, 0.12);
+  --shadow: 0 22px 54px rgba(91, 6, 12, 0.15);
 }
 
 * {
@@ -29,6 +29,11 @@ body {
   color: var(--ink);
   font-family: "Manrope", Arial, sans-serif;
   line-height: 1.6;
+}
+
+.public-page {
+  background:
+    linear-gradient(180deg, #fff5f2 0%, #fff0ed 46%, #fff7f5 100%);
 }
 
 button,
@@ -71,10 +76,10 @@ svg {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  min-height: 72px;
+  min-height: 76px;
   padding: 12px max(20px, calc((100vw - 1160px) / 2));
-  background: rgba(255, 255, 255, 0.92);
-  border-bottom: 1px solid rgba(220, 229, 238, 0.9);
+  background: rgba(255, 244, 241, 0.92);
+  border-bottom: 1px solid rgba(240, 200, 196, 0.7);
   backdrop-filter: blur(16px);
 }
 
@@ -88,13 +93,13 @@ svg {
 .brand-mark {
   display: grid;
   place-items: center;
-  width: 42px;
+  width: 50px;
   height: 42px;
   flex: 0 0 auto;
   color: var(--white);
-  background: var(--blue);
-  border-radius: 8px;
-  font-size: 1.12rem;
+  background: var(--blue-dark);
+  border-radius: 999px;
+  font-size: 0.92rem;
   font-weight: 800;
 }
 
@@ -110,7 +115,7 @@ svg {
 }
 
 .brand small {
-  color: var(--muted);
+  color: #9a6367;
   font-size: 0.76rem;
 }
 
@@ -121,9 +126,9 @@ svg {
   display: none;
   width: min(320px, calc(100vw - 40px));
   padding: 10px;
-  background: var(--white);
+  background: #fff7f5;
   border: 1px solid var(--line);
-  border-radius: 8px;
+  border-radius: 18px;
   box-shadow: var(--shadow);
 }
 
@@ -131,8 +136,8 @@ svg {
 .admin-nav-item {
   min-height: 42px;
   padding: 10px 14px;
-  border-radius: 8px;
-  color: #314357;
+  border-radius: 999px;
+  color: #70131a;
   font-weight: 800;
   font-size: 0.92rem;
 }
@@ -145,17 +150,17 @@ svg {
 .site-nav a:hover,
 .site-nav a:focus-visible,
 .site-nav .nav-pill {
-  color: var(--blue-dark);
-  background: #edf4fa;
+  color: var(--white);
+  background: var(--blue-dark);
 }
 
 .menu-toggle {
   display: block;
-  width: 44px;
+  width: 48px;
   height: 44px;
   border: 1px solid var(--line);
-  border-radius: 8px;
-  background: var(--white);
+  border-radius: 999px;
+  background: #fff9f7;
   cursor: pointer;
 }
 
@@ -164,7 +169,7 @@ svg {
   width: 18px;
   height: 2px;
   margin: 4px auto;
-  background: var(--ink);
+  background: var(--blue-dark);
   border-radius: 999px;
 }
 
@@ -175,59 +180,88 @@ svg {
 
 .hero {
   position: relative;
-  min-height: 610px;
+  min-height: auto;
+  padding: 46px 20px 74px;
   overflow: hidden;
   isolation: isolate;
 }
 
 .hero-bg {
-  position: absolute;
-  inset: 0;
-  z-index: -2;
-  background-image:
-    linear-gradient(90deg, rgba(245, 248, 251, 0.99) 0%, rgba(245, 248, 251, 0.9) 36%, rgba(245, 248, 251, 0.34) 70%, rgba(245, 248, 251, 0.1) 100%),
-    url("/assets/hero-russian-lesson.png");
-  background-position: center;
-  background-size: cover;
+  display: none;
 }
 
 .hero::after {
-  content: "";
-  position: absolute;
-  inset: auto 0 0;
-  height: 28%;
-  z-index: -1;
-  background: linear-gradient(180deg, rgba(245, 248, 251, 0), var(--paper));
+  display: none;
 }
 
-.hero-content {
+.hero-shell {
   width: min(1160px, calc(100% - 40px));
   margin: 0 auto;
-  padding: 76px 0 36px;
+  display: grid;
+  grid-template-columns: minmax(280px, 0.86fr) minmax(340px, 1.14fr);
+  align-items: center;
+  gap: 50px;
+  padding: 34px 46px;
+  color: var(--white);
+  background: var(--blue);
+  border-radius: 54px;
+  box-shadow: 0 28px 78px rgba(132, 0, 8, 0.28);
+}
+
+.hero-portrait {
+  position: relative;
+  margin: 0;
+}
+
+.hero-portrait img {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1 / 1.04;
+  object-fit: cover;
+  object-position: center;
+  border: 10px solid rgba(255, 245, 242, 0.18);
+  border-radius: 28px;
+}
+
+.hero-portrait figcaption {
+  position: absolute;
+  left: 22px;
+  bottom: 22px;
+  padding: 9px 14px;
+  color: var(--blue-dark);
+  background: rgba(255, 245, 242, 0.94);
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 800;
 }
 
 .eyebrow,
 .section-kicker {
   margin: 0 0 12px;
-  color: var(--coral);
+  color: var(--blue);
   font-size: 0.78rem;
   font-weight: 800;
   letter-spacing: 0;
   text-transform: uppercase;
 }
 
+.hero .eyebrow {
+  color: #ffe5e1;
+}
+
 .hero h1 {
-  max-width: 750px;
+  max-width: 680px;
   margin: 0;
-  font-size: 4rem;
-  line-height: 0.99;
+  color: var(--white);
+  font-size: 3.82rem;
+  line-height: 1.03;
   letter-spacing: 0;
 }
 
 .hero-text {
-  max-width: 650px;
+  max-width: 620px;
   margin: 24px 0 0;
-  color: #34475a;
+  color: #ffe7e4;
   font-size: 1.08rem;
 }
 
@@ -246,7 +280,7 @@ svg {
   min-height: 48px;
   padding: 12px 18px;
   border: 1px solid transparent;
-  border-radius: 8px;
+  border-radius: 999px;
   font-weight: 800;
   line-height: 1.2;
   cursor: pointer;
@@ -261,7 +295,7 @@ svg {
 .button.primary {
   color: var(--white);
   background: var(--blue);
-  box-shadow: 0 12px 28px rgba(29, 95, 140, 0.24);
+  box-shadow: 0 12px 28px rgba(167, 5, 13, 0.24);
 }
 
 .button.primary:hover,
@@ -273,6 +307,30 @@ svg {
   color: var(--ink);
   background: rgba(255, 255, 255, 0.86);
   border-color: var(--line);
+}
+
+.hero .button.primary {
+  color: var(--blue-dark);
+  background: #fff4f1;
+  box-shadow: none;
+}
+
+.hero .button.primary:hover,
+.hero .button.primary:focus-visible {
+  color: var(--blue-dark);
+  background: var(--white);
+}
+
+.hero .button.secondary {
+  color: var(--white);
+  background: transparent;
+  border-color: rgba(255, 244, 241, 0.72);
+}
+
+.hero .button.secondary:hover,
+.hero .button.secondary:focus-visible {
+  background: rgba(255, 244, 241, 0.12);
+  box-shadow: none;
 }
 
 .button.secondary:hover,
@@ -302,19 +360,19 @@ svg {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 152px));
   gap: 12px;
-  margin: 30px 0 0;
+  margin: 34px 0 0;
 }
 
 .hero-stats div {
   padding: 14px;
-  background: rgba(255, 255, 255, 0.75);
-  border: 1px solid rgba(220, 229, 238, 0.9);
-  border-radius: 8px;
+  background: rgba(255, 244, 241, 0.11);
+  border: 1px solid rgba(255, 244, 241, 0.24);
+  border-radius: 18px;
 }
 
 .hero-stats dt {
   margin: 0;
-  color: var(--blue-dark);
+  color: var(--white);
   font-size: 1.25rem;
   font-weight: 800;
   line-height: 1.1;
@@ -322,7 +380,7 @@ svg {
 
 .hero-stats dd {
   margin: 6px 0 0;
-  color: var(--muted);
+  color: #ffdcd8;
   font-size: 0.84rem;
 }
 
@@ -336,7 +394,7 @@ svg {
 }
 
 .intro-band {
-  background: var(--white);
+  background: #fff9f7;
   border-block: 1px solid var(--line);
 }
 
@@ -361,7 +419,8 @@ th {
 
 h2 {
   margin: 0;
-  font-size: 2.28rem;
+  color: var(--blue-dark);
+  font-size: 2.42rem;
   line-height: 1.12;
   letter-spacing: 0;
 }
@@ -402,8 +461,8 @@ h3 {
   min-height: 34px;
   padding: 7px 12px;
   color: var(--blue-dark);
-  background: #edf4fa;
-  border: 1px solid #d7e6f1;
+  background: #fff0ec;
+  border: 1px solid #f1c7c0;
   border-radius: 999px;
   font-size: 0.82rem;
   font-weight: 800;
@@ -413,7 +472,7 @@ h3 {
   position: relative;
   margin: 0;
   padding: 14px;
-  background: linear-gradient(145deg, #ffffff, #edf4f8);
+  background: #fff7f4;
   border: 1px solid var(--line);
   border-radius: 8px;
   box-shadow: var(--shadow);
@@ -425,13 +484,14 @@ h3 {
   inset: 24px -10px -10px 42px;
   z-index: 0;
   border-radius: 8px;
-  background: rgba(216, 102, 76, 0.18);
+  background: rgba(167, 5, 13, 0.13);
 }
 
 .teacher-card img {
   position: relative;
   z-index: 1;
   width: 100%;
+  height: auto;
   aspect-ratio: 1 / 1;
   object-fit: cover;
   object-position: center;
@@ -472,15 +532,14 @@ h3 {
 }
 
 .section-heading {
-  display: flex;
-  align-items: end;
-  justify-content: space-between;
-  gap: 28px;
+  display: block;
+  text-align: center;
   margin-bottom: 34px;
 }
 
 .section-heading h2 {
   max-width: 720px;
+  margin: 0 auto;
 }
 
 .card-grid {
@@ -494,10 +553,10 @@ h3 {
 .surface,
 .tool-form,
 .login-card {
-  background: var(--white);
+  background: #fff9f7;
   border: 1px solid var(--line);
   border-radius: 8px;
-  box-shadow: 0 10px 30px rgba(19, 34, 56, 0.06);
+  box-shadow: 0 10px 30px rgba(91, 6, 12, 0.07);
 }
 
 .course-card,
@@ -525,18 +584,22 @@ h3 {
   width: 42px;
   margin-bottom: 28px;
   padding-bottom: 8px;
-  color: var(--coral);
-  border-bottom: 2px solid var(--coral);
+  color: var(--blue);
+  border-bottom: 2px solid var(--blue);
   font-weight: 800;
 }
 
 .method-band {
   color: var(--white);
-  background: var(--ink);
+  background: var(--blue-dark);
 }
 
 .method-band .section-kicker {
-  color: #f0a08a;
+  color: #ffd9d4;
+}
+
+.method-band h2 {
+  color: var(--white);
 }
 
 .method-layout p {
@@ -557,8 +620,8 @@ h3 {
 .steps li {
   min-height: 168px;
   padding: 24px;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 244, 241, 0.2);
   border-radius: 8px;
 }
 
@@ -567,7 +630,7 @@ h3 {
   content: counter(step, decimal-leading-zero);
   display: inline-block;
   margin-bottom: 24px;
-  color: #9bd0bd;
+  color: #fff0ed;
   font-weight: 800;
 }
 
@@ -597,8 +660,8 @@ h3 {
 }
 
 .plan-card.featured {
-  border-color: rgba(216, 102, 76, 0.42);
-  box-shadow: 0 20px 48px rgba(216, 102, 76, 0.14);
+  border-color: rgba(167, 5, 13, 0.42);
+  box-shadow: 0 20px 48px rgba(167, 5, 13, 0.12);
 }
 
 .plan-label {
@@ -606,7 +669,7 @@ h3 {
   margin: 0 0 14px;
   padding: 6px 10px;
   color: var(--white);
-  background: var(--green);
+  background: var(--blue-dark);
   border-radius: 999px;
   font-size: 0.78rem;
   font-weight: 800;
@@ -636,7 +699,7 @@ h3 {
   left: 0;
   width: 12px;
   height: 2px;
-  background: var(--coral);
+  background: var(--blue);
 }
 
 .plan-action {
@@ -645,8 +708,8 @@ h3 {
 }
 
 .results-band {
-  background: #eaf3f0;
-  border-block: 1px solid #d6e7e0;
+  background: #fff8f6;
+  border-block: 1px solid var(--line);
 }
 
 .result-list {
@@ -657,9 +720,9 @@ h3 {
 .result-list p {
   margin: 0;
   padding: 20px 22px;
-  color: #34475a;
+  color: #6f3338;
   background: rgba(255, 255, 255, 0.76);
-  border-left: 4px solid var(--green);
+  border-left: 4px solid var(--blue);
   border-radius: 8px;
   font-weight: 700;
 }
@@ -713,9 +776,9 @@ textarea {
   min-height: 46px;
   padding: 11px 13px;
   color: var(--ink);
-  background: #fbfdff;
+  background: #fffdfc;
   border: 1px solid var(--line);
-  border-radius: 8px;
+  border-radius: 18px;
   outline: none;
 }
 
@@ -727,7 +790,7 @@ input:focus,
 select:focus,
 textarea:focus {
   border-color: var(--blue);
-  box-shadow: 0 0 0 3px rgba(29, 95, 140, 0.13);
+  box-shadow: 0 0 0 3px rgba(167, 5, 13, 0.12);
 }
 
 .form-status,
@@ -743,8 +806,8 @@ textarea:focus {
   justify-content: space-between;
   gap: 20px;
   padding: 28px max(20px, calc((100vw - 1160px) / 2));
-  color: #dbe6ef;
-  background: var(--ink);
+  color: #ffe8e4;
+  background: var(--blue-dark);
 }
 
 .site-footer p {
@@ -1070,6 +1133,23 @@ td span {
 }
 
 @media (max-width: 920px) {
+  .hero-shell {
+    grid-template-columns: 1fr;
+    gap: 32px;
+    padding: 32px;
+  }
+
+  .hero-copy {
+    order: 1;
+  }
+
+  .hero-portrait {
+    order: 2;
+    max-width: 390px;
+    width: 100%;
+    margin: 0 auto;
+  }
+
   .hero h1 {
     font-size: 3.1rem;
   }
@@ -1128,7 +1208,7 @@ td span {
     padding: 10px;
     background: var(--white);
     border: 1px solid var(--line);
-    border-radius: 8px;
+    border-radius: 18px;
     box-shadow: var(--shadow);
   }
 
@@ -1141,29 +1221,39 @@ td span {
   }
 
   .hero {
-    min-height: 580px;
+    min-height: auto;
+    padding: 20px 16px 34px;
   }
 
-  .hero-bg {
-    background-image:
-      linear-gradient(90deg, rgba(245, 248, 251, 0.99) 0%, rgba(245, 248, 251, 0.92) 58%, rgba(245, 248, 251, 0.52) 100%),
-      url("/assets/hero-russian-lesson.png");
-    background-position: 58% center;
+  .hero-shell {
+    width: 100%;
+    gap: 14px;
+    padding: 18px;
+    border-radius: 32px;
   }
 
-  .hero-content {
-    width: min(100% - 32px, 1160px);
-    padding-top: 58px;
-    padding-bottom: 30px;
+  .hero-portrait img {
+    aspect-ratio: 1 / 1;
+    border-width: 6px;
+    border-radius: 20px;
+  }
+
+  .hero-portrait {
+    max-width: 132px;
+  }
+
+  .hero-portrait figcaption {
+    display: none;
   }
 
   .hero h1 {
-    font-size: 2.34rem;
+    font-size: 2.08rem;
     line-height: 1.04;
   }
 
   .hero-text {
-    font-size: 0.98rem;
+    margin-top: 16px;
+    font-size: 0.92rem;
   }
 
   .hero-actions,
@@ -1171,14 +1261,24 @@ td span {
     width: 100%;
   }
 
+  .hero-actions {
+    gap: 10px;
+    margin-top: 20px;
+  }
+
+  .hero-actions .button {
+    min-height: 42px;
+  }
+
   .hero-stats {
     grid-template-columns: repeat(3, minmax(0, 1fr));
     max-width: 100%;
     gap: 8px;
+    margin-top: 14px;
   }
 
   .hero-stats div {
-    padding: 10px;
+    padding: 8px;
   }
 
   .hero-stats dt {
@@ -1275,11 +1375,16 @@ td span {
   }
 
   .hero {
-    min-height: 560px;
+    min-height: auto;
   }
 
   .hero h1 {
     font-size: 2.05rem;
+  }
+
+  .hero-shell {
+    border-radius: 26px;
+    padding: 18px;
   }
 
   .stat-grid {
