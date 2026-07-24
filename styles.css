@@ -1391,3 +1391,645 @@ td span {
     grid-template-columns: 1fr;
   }
 }
+
+/* Public landing style matched to the requested reference rhythm. */
+.public-page {
+  background: #fff3f1;
+  color: #3a080d;
+}
+
+.public-page .site-header {
+  min-height: 90px;
+  padding-inline: max(48px, calc((100vw - 1160px) / 2));
+  background: rgba(255, 243, 241, 0.96);
+  border-bottom: 0;
+  box-shadow: none;
+}
+
+.public-page .brand {
+  gap: 10px;
+}
+
+.public-page .brand-mark {
+  position: relative;
+  width: 78px;
+  height: 50px;
+  color: #a7050d;
+  background: transparent;
+  font-size: 0;
+  border-radius: 0;
+}
+
+.public-page .brand-mark::before,
+.public-page .brand-mark::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 7px;
+  width: 52px;
+  height: 26px;
+  border-radius: 52px 52px 0 0;
+  background: #a7050d;
+  transform-origin: bottom center;
+}
+
+.public-page .brand-mark::before {
+  transform: translateX(-50%) rotate(-28deg);
+}
+
+.public-page .brand-mark::after {
+  transform: translateX(-50%) rotate(28deg);
+}
+
+.public-page .brand strong {
+  color: #8b0009;
+  font-size: 0.96rem;
+}
+
+.public-page .brand small {
+  color: #9f565d;
+}
+
+.public-page .site-nav {
+  gap: clamp(34px, 7vw, 104px);
+  padding: 0;
+}
+
+.public-page .site-nav a {
+  min-height: 36px;
+  padding: 4px 0;
+  color: #8b0009;
+  background: transparent;
+  border-radius: 0;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.public-page .site-nav a:hover,
+.public-page .site-nav a:focus-visible,
+.public-page .site-nav .nav-pill {
+  color: #b6000c;
+  background: transparent;
+}
+
+.public-page .tilda-hero {
+  padding: 20px 20px 74px;
+}
+
+.public-page .hero-shell {
+  width: min(1060px, calc(100% - 40px));
+  min-height: 540px;
+  gap: 56px;
+  grid-template-columns: minmax(300px, 0.88fr) minmax(360px, 1.12fr);
+  padding: 40px;
+  background: #b6000c;
+  border-radius: 52px;
+  box-shadow: none;
+}
+
+.public-page .hero-portrait img {
+  aspect-ratio: 0.92 / 1;
+  border: 0;
+  border-radius: 18px;
+}
+
+.public-page .hero-copy {
+  text-align: center;
+}
+
+.public-page .hero .eyebrow {
+  margin-bottom: 16px;
+  color: #ffeae7;
+  font-size: 1.02rem;
+  font-weight: 700;
+  text-transform: none;
+}
+
+.public-page .hero h1 {
+  max-width: 560px;
+  margin-inline: auto;
+  font-size: clamp(3.2rem, 5vw, 4.7rem);
+  line-height: 0.98;
+  font-weight: 800;
+}
+
+.public-page .hero-text {
+  max-width: 460px;
+  margin: 24px auto 0;
+  color: #ffe9e5;
+  font-size: 1.02rem;
+  line-height: 1.45;
+}
+
+.public-page .hero-actions {
+  justify-content: center;
+  margin-top: 44px;
+  gap: 24px;
+}
+
+.public-page .hero .button {
+  min-width: 216px;
+  min-height: 54px;
+  padding-inline: 24px;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+}
+
+.public-page .hero .button.primary {
+  color: #8c0009;
+  background: #fff5f2;
+}
+
+.public-page .hero .button.secondary {
+  color: #fff7f4;
+  background: transparent;
+  border: 2px solid #fff7f4;
+}
+
+.public-page .section {
+  padding: 96px 20px;
+}
+
+.public-page .section-inner {
+  width: min(1060px, 100%);
+}
+
+.public-page .tilda-heading {
+  max-width: 760px;
+  margin-inline: auto;
+  margin-bottom: 58px;
+  text-align: center;
+}
+
+.public-page .tilda-heading h2,
+.public-page .result-poster h2 {
+  color: #a0000a;
+  font-size: clamp(2.4rem, 4vw, 3.8rem);
+  line-height: 1.02;
+}
+
+.public-page .tilda-heading p {
+  max-width: 640px;
+  margin: 14px auto 0;
+  color: #a13f47;
+  font-size: 1.22rem;
+  line-height: 1.25;
+}
+
+.public-page .teacher-band {
+  background: #fff3f1;
+  border: 0;
+  padding-top: 34px;
+}
+
+.public-page .teacher-row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 74px;
+  align-items: start;
+}
+
+.public-page .profile-tile {
+  display: grid;
+  justify-items: center;
+  text-align: center;
+}
+
+.public-page .petal-mark {
+  position: relative;
+  display: block;
+  width: 120px;
+  height: 70px;
+  margin-bottom: 12px;
+}
+
+.public-page .petal-mark::before,
+.public-page .petal-mark::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 10px;
+  width: 82px;
+  height: 40px;
+  border-radius: 82px 82px 0 0;
+  background: #b6000c;
+  transform-origin: bottom center;
+}
+
+.public-page .petal-mark::before {
+  transform: translateX(-50%) rotate(-24deg);
+}
+
+.public-page .petal-mark::after {
+  transform: translateX(-50%) rotate(24deg);
+}
+
+.public-page .profile-tile img {
+  width: 100%;
+  aspect-ratio: 0.72 / 1;
+  object-fit: cover;
+  object-position: center;
+  border-radius: 14px;
+}
+
+.public-page .profile-tile:nth-child(2) img,
+.public-page .profile-tile:nth-child(3) img {
+  object-position: center;
+}
+
+.public-page .profile-tile h3 {
+  margin-top: 24px;
+  color: #b0000b;
+  font-size: 1.9rem;
+  line-height: 1;
+}
+
+.public-page .profile-tile p {
+  min-height: 52px;
+  margin: 10px 0 18px;
+  color: #8f464c;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.public-page .profile-tile .button,
+.public-page .product-card .button {
+  min-width: 210px;
+  background: #b6000c;
+  box-shadow: none;
+  text-transform: uppercase;
+}
+
+.public-page .products-band {
+  background: #fff3f1;
+}
+
+.public-page .product-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  column-gap: 88px;
+  row-gap: 60px;
+}
+
+.public-page .product-card {
+  display: grid;
+  justify-items: center;
+  text-align: center;
+}
+
+.public-page .product-image {
+  width: 100%;
+  aspect-ratio: 0.92 / 1;
+  background-color: #b6000c;
+  background-position: center;
+  background-size: cover;
+  border-radius: 16px;
+}
+
+.public-page .image-lesson,
+.public-page .image-writing {
+  background-image: url("/assets/hero-russian-lesson.png");
+}
+
+.public-page .image-test,
+.public-page .image-online,
+.public-page .image-offline,
+.public-page .image-group {
+  background-image:
+    linear-gradient(180deg, rgba(182, 0, 12, 0.12), rgba(182, 0, 12, 0.28)),
+    url("/assets/teacher-umida.png");
+}
+
+.public-page .product-card h3 {
+  min-height: 54px;
+  margin-top: 22px;
+  color: #7d1017;
+  font-size: 1.18rem;
+  line-height: 1.18;
+}
+
+.public-page .lesson-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  margin: 14px 0 18px;
+  padding: 7px 18px;
+  color: #b6000c;
+  background: #fff7f5;
+  border: 1px solid #f1d5d1;
+  border-radius: 999px;
+  font-size: 1.04rem;
+  font-weight: 800;
+}
+
+.public-page .lessons-band {
+  background: #fff3f1;
+  border-top: 1px solid #e2b8b3;
+}
+
+.public-page .lessons-band .button {
+  margin-top: 26px;
+  min-width: 180px;
+  background: #b6000c;
+  box-shadow: none;
+  text-transform: uppercase;
+}
+
+.public-page .lesson-feature-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 28px;
+}
+
+.public-page .lesson-feature-grid article {
+  padding: 22px 8px 0;
+  color: #7d1017;
+  text-align: center;
+}
+
+.public-page .lesson-feature-grid h3 {
+  color: #b6000c;
+  font-size: 1.2rem;
+}
+
+.public-page .lesson-feature-grid p {
+  margin: 10px 0 0;
+  color: #8f464c;
+  line-height: 1.4;
+}
+
+.public-page .result-poster {
+  display: grid;
+  grid-template-columns: minmax(320px, 0.9fr) minmax(320px, 1fr);
+  gap: 54px;
+  align-items: center;
+  padding: 58px;
+  background: #b6000c;
+  border-radius: 46px;
+}
+
+.public-page .result-poster h2 {
+  color: #fff7f5;
+}
+
+.public-page .poster-copy p {
+  margin: 18px 0 0;
+  color: #ffe6e2;
+}
+
+.public-page .result-list {
+  gap: 14px;
+}
+
+.public-page .result-list p {
+  padding: 18px 20px;
+  color: #7d1017;
+  background: #fff7f5;
+  border-left: 0;
+  border-radius: 24px;
+}
+
+.public-page #contact {
+  background: #fff3f1;
+}
+
+.public-page .order-layout {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.82fr) minmax(360px, 1.18fr);
+  gap: 58px;
+  align-items: start;
+}
+
+.public-page .contact-copy h2 {
+  color: #a0000a;
+  font-size: clamp(2.2rem, 3.5vw, 3.2rem);
+}
+
+.public-page .contact-copy p {
+  color: #8f464c;
+}
+
+.public-page .contact-lines a {
+  color: #a0000a;
+}
+
+.public-page .contact-form {
+  padding: 0;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+
+.public-page .contact-form label {
+  color: #a0000a;
+  font-size: 0.86rem;
+  text-transform: uppercase;
+}
+
+.public-page .contact-form input,
+.public-page .contact-form select,
+.public-page .contact-form textarea {
+  border: 0;
+  border-bottom: 1px solid #bd7c82;
+  border-radius: 0;
+  background: transparent;
+}
+
+.public-page .contact-form .button {
+  min-height: 56px;
+  background: #b6000c;
+  box-shadow: none;
+  text-transform: uppercase;
+}
+
+.public-page .site-footer {
+  padding-block: 38px;
+  color: #fff7f5;
+  background: #b6000c;
+}
+
+@media (min-width: 861px) {
+  .public-page .menu-toggle {
+    display: none;
+  }
+
+  .public-page .site-nav {
+    position: static;
+    display: flex;
+    width: auto;
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+  }
+}
+
+@media (max-width: 1080px) {
+  .public-page .teacher-row,
+  .public-page .product-grid {
+    gap: 34px;
+  }
+
+  .public-page .lesson-feature-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 860px) {
+  .public-page .site-header {
+    min-height: 72px;
+    padding-inline: 16px;
+  }
+
+  .public-page .brand-mark {
+    width: 56px;
+    height: 42px;
+  }
+
+  .public-page .brand strong {
+    font-size: 0.9rem;
+  }
+
+  .public-page .site-nav {
+    right: 16px;
+    left: 16px;
+    background: #fff7f5;
+    border-radius: 22px;
+  }
+
+  .public-page .site-nav a,
+  .public-page .site-nav .nav-pill {
+    min-height: 46px;
+    padding: 10px 14px;
+    border-radius: 999px;
+  }
+
+  .public-page .site-nav .nav-pill {
+    color: #fff7f5;
+    background: #b6000c;
+  }
+
+  .public-page .tilda-hero {
+    padding: 16px 16px 46px;
+  }
+
+  .public-page .hero-shell {
+    width: 100%;
+    min-height: auto;
+    grid-template-columns: 1fr;
+    gap: 18px;
+    padding: 18px;
+    border-radius: 34px;
+  }
+
+  .public-page .hero-copy {
+    order: 2;
+  }
+
+  .public-page .hero-portrait {
+    order: 1;
+    width: min(100%, 360px);
+    max-width: 360px;
+  }
+
+  .public-page .hero-portrait img {
+    aspect-ratio: 1 / 0.58;
+    border-radius: 20px;
+  }
+
+  .public-page .hero h1 {
+    font-size: 2.18rem;
+  }
+
+  .public-page .hero-text {
+    margin-top: 14px;
+    font-size: 0.92rem;
+  }
+
+  .public-page .hero-actions {
+    display: grid;
+    gap: 12px;
+    margin-top: 18px;
+  }
+
+  .public-page .hero .button {
+    width: 100%;
+    min-width: 0;
+    min-height: 44px;
+  }
+
+  .public-page .section {
+    padding: 70px 16px;
+  }
+
+  .public-page .teacher-band {
+    padding-top: 30px;
+  }
+
+  .public-page .tilda-heading {
+    margin-bottom: 38px;
+  }
+
+  .public-page .tilda-heading h2,
+  .public-page .result-poster h2 {
+    font-size: 2.15rem;
+  }
+
+  .public-page .tilda-heading p {
+    font-size: 1rem;
+  }
+
+  .public-page .teacher-row,
+  .public-page .product-grid,
+  .public-page .result-poster,
+  .public-page .order-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .public-page .teacher-row,
+  .public-page .product-grid {
+    gap: 44px;
+  }
+
+  .public-page .profile-tile,
+  .public-page .product-card {
+    max-width: 390px;
+    margin-inline: auto;
+  }
+
+  .public-page .result-poster {
+    gap: 24px;
+    padding: 28px;
+    border-radius: 30px;
+  }
+
+  .public-page .contact-form {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 520px) {
+  .public-page .brand small {
+    display: none;
+  }
+
+  .public-page .hero-shell {
+    padding: 18px;
+  }
+
+  .public-page .hero h1 {
+    font-size: 1.94rem;
+  }
+
+  .public-page .hero-text {
+    font-size: 0.88rem;
+  }
+
+  .public-page .lesson-feature-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .public-page .product-card h3 {
+    min-height: auto;
+  }
+}
