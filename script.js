@@ -606,7 +606,9 @@ function setupPremiumMotion() {
   if (!motionTargets.length) return;
 
   const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  if (reduceMotion || !("IntersectionObserver" in window)) {
+  document.documentElement.classList.toggle("motion-reduced", reduceMotion);
+
+  if (!("IntersectionObserver" in window)) {
     motionTargets.forEach((target) => target.classList.add("reveal-visible"));
     return;
   }
@@ -621,7 +623,8 @@ function setupPremiumMotion() {
 
   staggerGroups.forEach((selector) => {
     document.querySelectorAll(selector).forEach((target, index) => {
-      target.style.setProperty("--reveal-delay", `${Math.min(index, 5) * 90}ms`);
+      const delay = reduceMotion ? Math.min(index, 5) * 35 : Math.min(index, 5) * 90;
+      target.style.setProperty("--reveal-delay", `${delay}ms`);
     });
   });
 

@@ -2091,19 +2091,47 @@ td span {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
+  html {
     scroll-behavior: auto !important;
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
+  }
+
+  .public-page .site-header {
+    animation-duration: 520ms;
+  }
+
+  .public-page .brand-mark,
+  .public-page .hero-shell,
+  .public-page .hero-portrait,
+  .public-page .hero-copy,
+  .public-page .hero-actions {
+    animation-duration: 640ms;
+  }
+
+  .public-page .hero-shell::after,
+  .public-page .button::after {
+    display: none;
+  }
+
+  .public-page .petal-mark {
+    animation: none;
   }
 
   .public-page .reveal-ready {
-    opacity: 1;
-    transform: none;
-    filter: none;
+    transform: translateY(18px) scale(0.995);
+    filter: blur(3px);
+  }
+
+  .public-page .reveal-ready.reveal-visible {
+    transition-duration: 520ms;
+  }
+
+  .public-page .hero-portrait:hover img,
+  .public-page .profile-tile:hover img,
+  .public-page .product-card:hover .product-image,
+  .public-page .profile-tile:hover,
+  .public-page .product-card:hover,
+  .public-page .lesson-feature-grid article:hover {
+    transform: translateY(-4px);
   }
 }
 
