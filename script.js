@@ -24,11 +24,11 @@ const translations = {
   uz: {
     meta: {
       title: "Rus Tili Ustozi | Portfolio",
-      description: "Rus tili ustozining portfolio sayti: maktab o'quvchilari va abituriyentlar uchun online hamda offline darslar."
+      description: "Rus tili ustozining portfolio sayti: abituriyentlar uchun online hamda offline darslar."
     },
     brand: {
       title: "Umida Rus Tili",
-      subtitle: "Maktab va abituriyent darslari"
+      subtitle: "Abituriyent tayyorgarligi"
     },
     lang: {
       label: "Tilni tanlash"
@@ -52,7 +52,7 @@ const translations = {
     hero: {
       kicker: "rus tili ustozi",
       title: "Umida bilan rus tili darslari",
-      text: "Maktab o'quvchilari va abituriyentlar grammatika, test, matn bilan ishlash va yozma topshiriqlarni online yoki offline formatda puxta o'rganadi.",
+      text: "Abituriyentlar grammatika, test, matn bilan ishlash va yozma topshiriqlarni online yoki offline formatda puxta o'rganadi.",
       primary: "Darsga yozilish",
       secondary: "Dars haqida"
     },
@@ -67,8 +67,8 @@ const translations = {
         button: "Darsga yozilish"
       },
       school: {
-        title: "Maktab",
-        text: "5-11-sinf mavzulari, uy vazifasi va nazorat ishlari"
+        title: "Grammatika",
+        text: "Qoidalar, uy vazifasi va nazorat ishlari"
       },
       exam: {
         title: "Abituriyent",
@@ -81,8 +81,8 @@ const translations = {
     },
     products: {
       school: {
-        title: "Maktab dasturi",
-        chip: "5-11-sinf"
+        title: "Grammatika kursi",
+        chip: "Qoida va amaliyot"
       },
       exam: {
         title: "Abituriyent tayyorgarligi",
@@ -129,8 +129,8 @@ const translations = {
     },
     results: {
       title: "O'quvchi qoidani yodlash bilan cheklanmay, uni topshiriqda ishlatishni o'rganadi",
-      text: "Maktab darslaridagi bo'sh mavzular aniqlanadi, testdagi xatolar tushuntiriladi va keyingi darslar shu natijaga qarab rejalashtiriladi.",
-      item1: "Maktab darslaridagi bo'sh mavzular aniqlanib, izchil takrorlanadi.",
+      text: "Bo'sh mavzular aniqlanadi, testdagi xatolar tushuntiriladi va keyingi darslar shu natijaga qarab rejalashtiriladi.",
+      item1: "Bo'sh mavzular aniqlanib, izchil takrorlanadi.",
       item2: "Test ishlaganda nima uchun xato bo'layotgani tushuntiriladi.",
       item3: "Uyga vazifa, yozma ish va og'zaki javoblar bo'yicha muntazam fikr beriladi."
     },
@@ -171,11 +171,11 @@ const translations = {
   ru: {
     meta: {
       title: "Русский с Умидой | Портфолио",
-      description: "Портфолио преподавателя русского языка: онлайн и офлайн уроки для школьников и абитуриентов."
+      description: "Портфолио преподавателя русского языка: онлайн и офлайн уроки для абитуриентов."
     },
     brand: {
       title: "Русский с Умидой",
-      subtitle: "Уроки для школьников и абитуриентов"
+      subtitle: "Подготовка абитуриентов"
     },
     lang: {
       label: "Выбор языка"
@@ -199,7 +199,7 @@ const translations = {
     hero: {
       kicker: "преподаватель русского языка",
       title: "Русский язык с Умидой",
-      text: "Школьники и абитуриенты системно изучают грамматику, тесты, работу с текстом и письменные задания в онлайн или офлайн формате.",
+      text: "Абитуриенты системно изучают грамматику, тесты, работу с текстом и письменные задания в онлайн или офлайн формате.",
       primary: "Записаться на урок",
       secondary: "О занятиях"
     },
@@ -214,8 +214,8 @@ const translations = {
         button: "Записаться на урок"
       },
       school: {
-        title: "Школьники",
-        text: "Темы 5-11 классов, домашние задания и контрольные работы"
+        title: "Грамматика",
+        text: "Правила, домашние задания и контрольные работы"
       },
       exam: {
         title: "Абитуриенты",
@@ -228,8 +228,8 @@ const translations = {
     },
     products: {
       school: {
-        title: "Школьная программа",
-        chip: "5-11 класс"
+        title: "Курс грамматики",
+        chip: "Правила и практика"
       },
       exam: {
         title: "Подготовка абитуриентов",
@@ -276,8 +276,8 @@ const translations = {
     },
     results: {
       title: "Ученик не просто заучивает правило, а учится применять его в заданиях",
-      text: "Пробелы в школьных темах выявляются, ошибки в тестах объясняются, а следующие занятия планируются по результату.",
-      item1: "Пробелы в школьных темах выявляются и последовательно повторяются.",
+      text: "Пробелы в темах выявляются, ошибки в тестах объясняются, а следующие занятия планируются по результату.",
+      item1: "Пробелы в темах выявляются и последовательно повторяются.",
       item2: "Ошибки в тестах разбираются так, чтобы ученик понял причину.",
       item3: "По домашним заданиям, письму и устным ответам дается регулярная обратная связь."
     },
@@ -318,7 +318,7 @@ const translations = {
 };
 const goalOptions = [
   { value: "", uz: "Tanlang", ru: "Выберите" },
-  { value: "school", uz: "Maktab darslari", ru: "Школьная программа" },
+  { value: "school", uz: "Grammatika darslari", ru: "Грамматика" },
   { value: "exam", uz: "Abituriyent tayyorgarligi", ru: "Подготовка абитуриентов" },
   { value: "online", uz: "Online dars", ru: "Онлайн урок" },
   { value: "offline", uz: "Offline dars", ru: "Офлайн урок" },

@@ -116,7 +116,7 @@ function seedDatabase() {
     "Namuna o'quvchi",
     "+998 90 000 00 00",
     "B1",
-    "Maktab mavzularini mustahkamlash",
+    "Grammatika mavzularini mustahkamlash",
     "active",
     "Bu qator namuna uchun. Xohlasangiz o'chirib yoki tahrirlab yuboring.",
     nowValue,
