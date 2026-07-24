@@ -15,7 +15,7 @@ const languageLoaderText = document.querySelector("[data-language-loader-text]")
 const TELEGRAM_URL = "https://t.me/rustili_umiida";
 const LANG_STORAGE_KEY = "umida-rus-tili-lang";
 const INTRO_MIN_DURATION = 6900;
-const LOADER_PHRASE_INTERVAL = 1650;
+const LOADER_PHRASE_INTERVAL = 2300;
 const LANGUAGE_TRANSITION_IN = 360;
 const LANGUAGE_TRANSITION_OUT = 620;
 const langButtons = document.querySelectorAll("[data-lang-switch]");
@@ -512,15 +512,16 @@ function setLoaderPhrase(phrase, animate) {
     return;
   }
 
+  loaderStage.classList.remove("is-phrase-entering", "is-phrase-glow");
   loaderStage.classList.add("is-phrase-switching");
   window.setTimeout(() => {
     updateText();
     loaderStage.classList.remove("is-phrase-switching");
-    loaderStage.classList.add("is-phrase-glow");
+    loaderStage.classList.add("is-phrase-entering", "is-phrase-glow");
     window.setTimeout(() => {
-      loaderStage.classList.remove("is-phrase-glow");
-    }, 280);
-  }, 150);
+      loaderStage.classList.remove("is-phrase-entering", "is-phrase-glow");
+    }, 720);
+  }, 260);
 }
 
 async function transitionLanguage(nextLang) {
