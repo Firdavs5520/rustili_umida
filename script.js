@@ -6,6 +6,8 @@ const statusLine = document.querySelector(".form-status");
 const goalSelect = leadForm?.querySelector('select[name="goal"]');
 const TELEGRAM_URL = "https://t.me/rustili_umiida";
 
+setupPremiumMotion();
+
 menuToggle?.addEventListener("click", () => {
   const isOpen = header.classList.toggle("nav-open");
   menuToggle.setAttribute("aria-expanded", String(isOpen));
@@ -98,4 +100,58 @@ async function copyToClipboard(text) {
   } catch {
     return false;
   }
+}
+
+function setupPremiumMotion() {
+  const motionTargets = [
+    ...document.querySelectorAll(".tilda-heading"),
+    ...document.querySelectorAll(".profile-tile"),
+    ...document.querySelectorAll(".product-card"),
+    ...document.querySelectorAll(".lesson-feature-grid article"),
+    ...document.querySelectorAll(".result-poster"),
+    ...document.querySelectorAll(".result-list p"),
+    ...document.querySelectorAll(".order-layout > *")
+  ];
+
+  if (!motionTargets.length) return;
+
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (reduceMotion || !("IntersectionObserver" in window)) {
+    motionTargets.forEach((target) => target.classList.add("reveal-visible"));
+    return;
+  }
+
+  const staggerGroups = [
+    ".profile-tile",
+    ".product-card",
+    ".lesson-feature-grid article",
+    ".result-list p",
+    ".order-layout > *"
+  ];
+
+  staggerGroups.forEach((selector) => {
+    document.querySelectorAll(selector).forEach((target, index) => {
+      target.style.setProperty("--reveal-delay", `${Math.min(index, 5) * 90}ms`);
+    });
+  });
+
+  motionTargets.forEach((target) => target.classList.add("reveal-ready"));
+
+  const observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        entry.target.classList.add("reveal-visible");
+        observer.unobserve(entry.target);
+      });
+    },
+    {
+      rootMargin: "0px 0px -12% 0px",
+      threshold: 0.18
+    }
+  );
+
+  requestAnimationFrame(() => {
+    motionTargets.forEach((target) => observer.observe(target));
+  });
 }
