@@ -5,11 +5,15 @@ const state = {
   lessons: [],
   payments: [],
   leads: [],
+  storageMode: "server",
   editing: {
     student: null,
     lesson: null
   }
 };
+
+const CABINET_STORAGE_KEY = "umida-rus-tili-cabinet";
+const STORAGE_COLLECTIONS = ["students", "lessons", "payments", "leads"];
 
 const tabMeta = {
   dashboard: ["Bosh sahifa", "Bugungi holat"],
@@ -85,11 +89,13 @@ function showLogin() {
 
 async function loadAll() {
   const data = await fetchJson("/api/bootstrap");
-  state.summary = data.summary;
-  state.students = data.students;
-  state.lessons = data.lessons;
-  state.payments = data.payments;
-  state.leads = data.leads;
+  state.storageMode = data.storage || "server";
+  const source = state.storageMode === "browser" ? getClientBootstrapData() : data;
+  state.summary = source.summary;
+  state.students = source.students;
+  state.lessons = source.lessons;
+  state.payments = source.payments;
+  state.leads = source.leads;
 }
 
 function setTab(tab) {
@@ -734,7 +740,222 @@ function fillForm(form, data) {
   });
 }
 
+function getClientBootstrapData() {
+  const store = readCabinetStore();
+  const students = [...store.students];
+  const lessons = withStudentNames(store.lessons, students);
+  const payments = withStudentNames(store.payments, students);
+  const leads = [...store.leads];
+
+  return {
+    summary: getClientSummary({ students, lessons, payments, leads }),
+    students,
+    lessons,
+    payments,
+    leads
+  };
+}
+
+function getClientSummary(data) {
+  const nextLessons = data.lessons
+    .filter((lesson) => lesson.status === "planned")
+    .sort((a, b) => String(a.lesson_date).localeCompare(String(b.lesson_date)))
+    .slice(0, 5);
+
+  return {
+    activeStudents: data.students.filter((student) => student.status === "active").length,
+    allLessons: data.lessons.length,
+    plannedLessons: data.lessons.filter((lesson) => lesson.status === "planned").length,
+    newLeads: data.leads.filter((lead) => lead.status === "new").length,
+    paidTotal: data.payments
+      .filter((payment) => payment.status === "paid")
+      .reduce((total, payment) => total + Number(payment.amount || 0), 0),
+    nextLessons
+  };
+}
+
+function readCabinetStore() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(CABINET_STORAGE_KEY) || "{}");
+    const normalized = {
+      nextIds: { ...(parsed.nextIds || {}) },
+      students: Array.isArray(parsed.students) ? parsed.students : [],
+      lessons: Array.isArray(parsed.lessons) ? parsed.lessons : [],
+      payments: Array.isArray(parsed.payments) ? parsed.payments : [],
+      leads: Array.isArray(parsed.leads) ? parsed.leads : []
+    };
+
+    STORAGE_COLLECTIONS.forEach((collection) => {
+      const highestId = Math.max(0, ...normalized[collection].map((item) => Number(item.id || 0)));
+      normalized.nextIds[collection] = Math.max(Number(normalized.nextIds[collection] || 1), highestId + 1);
+    });
+
+    return normalized;
+  } catch {
+    return {
+      nextIds: { students: 1, lessons: 1, payments: 1, leads: 1 },
+      students: [],
+      lessons: [],
+      payments: [],
+      leads: []
+    };
+  }
+}
+
+function writeCabinetStore(store) {
+  localStorage.setItem(CABINET_STORAGE_KEY, JSON.stringify(store));
+}
+
+function nextClientId(store, collection) {
+  const id = Number(store.nextIds[collection] || 1);
+  store.nextIds[collection] = id + 1;
+  return id;
+}
+
+function withStudentNames(items, students) {
+  return items.map((item) => ({
+    ...item,
+    student_name: students.find((student) => String(student.id) === String(item.student_id))?.full_name || ""
+  }));
+}
+
+async function handleClientApi(url, options = {}) {
+  const method = (options.method || "GET").toUpperCase();
+  const { pathname } = new URL(url, window.location.origin);
+  const store = readCabinetStore();
+  const body = parseClientBody(options.body);
+  const timestamp = new Date().toISOString();
+
+  if (pathname === "/api/students" && method === "POST") {
+    store.students.unshift({
+      id: nextClientId(store, "students"),
+      full_name: body.full_name || "",
+      phone: body.phone || "",
+      level: body.level || "A1",
+      goal: body.goal || "",
+      status: body.status || "active",
+      notes: body.notes || "",
+      created_at: timestamp,
+      updated_at: timestamp
+    });
+    writeCabinetStore(store);
+    return { ok: true };
+  }
+
+  const studentMatch = pathname.match(/^\/api\/students\/(\d+)$/);
+  if (studentMatch && method === "PUT") {
+    updateClientItem(store, "students", Number(studentMatch[1]), { ...body, updated_at: timestamp });
+    writeCabinetStore(store);
+    return { ok: true };
+  }
+
+  if (studentMatch && method === "DELETE") {
+    updateClientItem(store, "students", Number(studentMatch[1]), { status: "archived", updated_at: timestamp });
+    writeCabinetStore(store);
+    return { ok: true };
+  }
+
+  if (pathname === "/api/lessons" && method === "POST") {
+    store.lessons.unshift({
+      id: nextClientId(store, "lessons"),
+      student_id: body.student_id || "",
+      title: body.title || "",
+      lesson_date: body.lesson_date || timestamp,
+      duration_minutes: Number(body.duration_minutes || 60),
+      format: body.format || "online",
+      status: body.status || "planned",
+      topic: body.topic || "",
+      homework: body.homework || "",
+      materials: body.materials || "",
+      notes: body.notes || "",
+      created_at: timestamp,
+      updated_at: timestamp
+    });
+    writeCabinetStore(store);
+    return { ok: true };
+  }
+
+  const lessonMatch = pathname.match(/^\/api\/lessons\/(\d+)$/);
+  if (lessonMatch && method === "PUT") {
+    updateClientItem(store, "lessons", Number(lessonMatch[1]), {
+      ...body,
+      duration_minutes: Number(body.duration_minutes || 60),
+      updated_at: timestamp
+    });
+    writeCabinetStore(store);
+    return { ok: true };
+  }
+
+  if (lessonMatch && method === "DELETE") {
+    removeClientItem(store, "lessons", Number(lessonMatch[1]));
+    writeCabinetStore(store);
+    return { ok: true };
+  }
+
+  if (pathname === "/api/payments" && method === "POST") {
+    store.payments.unshift({
+      id: nextClientId(store, "payments"),
+      student_id: body.student_id || "",
+      amount: Number(body.amount || 0),
+      paid_at: body.paid_at || today(),
+      method: body.method || "naqd",
+      status: body.status || "paid",
+      note: body.note || "",
+      created_at: timestamp
+    });
+    writeCabinetStore(store);
+    return { ok: true };
+  }
+
+  const paymentMatch = pathname.match(/^\/api\/payments\/(\d+)$/);
+  if (paymentMatch && method === "DELETE") {
+    removeClientItem(store, "payments", Number(paymentMatch[1]));
+    writeCabinetStore(store);
+    return { ok: true };
+  }
+
+  const leadMatch = pathname.match(/^\/api\/leads\/(\d+)$/);
+  if (leadMatch && method === "PUT") {
+    updateClientItem(store, "leads", Number(leadMatch[1]), { status: body.status || "contacted" });
+    writeCabinetStore(store);
+    return { ok: true };
+  }
+
+  if (leadMatch && method === "DELETE") {
+    removeClientItem(store, "leads", Number(leadMatch[1]));
+    writeCabinetStore(store);
+    return { ok: true };
+  }
+
+  throw new Error("Bu amal vaqtincha ishlamadi.");
+}
+
+function parseClientBody(body) {
+  if (!body) return {};
+  if (typeof body === "object") return body;
+
+  try {
+    return JSON.parse(body);
+  } catch {
+    return {};
+  }
+}
+
+function updateClientItem(store, collection, id, values) {
+  const index = store[collection].findIndex((item) => Number(item.id) === id);
+  if (index === -1) return;
+  store[collection][index] = { ...store[collection][index], ...values };
+}
+
+function removeClientItem(store, collection, id) {
+  store[collection] = store[collection].filter((item) => Number(item.id) !== id);
+}
+
 async function fetchJson(url, options = {}) {
+  if (state.storageMode === "browser" && isClientCabinetPath(url)) {
+    return handleClientApi(url, options);
+  }
+
   const response = await fetch(url, {
     credentials: "same-origin",
     headers: { "Content-Type": "application/json", ...(options.headers || {}) },
@@ -748,6 +969,12 @@ async function fetchJson(url, options = {}) {
     throw new Error(data.error || "So'rov bajarilmadi.");
   }
   return data;
+}
+
+function isClientCabinetPath(url) {
+  const { pathname } = new URL(url, window.location.origin);
+  return /^\/api\/(?:students|lessons|payments)(?:\/\d+)?$/.test(pathname)
+    || /^\/api\/leads\/\d+$/.test(pathname);
 }
 
 function formToJson(form) {

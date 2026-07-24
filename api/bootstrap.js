@@ -1,5 +1,6 @@
 module.exports = function handler(req, res) {
   res.status(200).json({
+    storage: "browser",
     summary: {
       activeStudents: 0,
       allLessons: 0,

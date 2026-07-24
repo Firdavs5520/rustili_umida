@@ -983,21 +983,56 @@ textarea:focus {
 
 .admin-page {
   min-height: 100vh;
-  background: #eef3f7;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.82), rgba(255, 229, 225, 0.42)),
+    linear-gradient(180deg, #fff6f3 0%, #fff0ed 58%, #fff8f6 100%);
+  color: #3a060b;
+  font-family: var(--font-apple);
 }
 
 .login-screen {
+  position: relative;
   min-height: 100vh;
   display: grid;
   place-items: center;
   padding: 24px;
+  overflow: hidden;
+}
+
+.login-screen::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 44vh;
+  background:
+    linear-gradient(135deg, rgba(166, 11, 29, 0.94), rgba(143, 6, 20, 0.9) 48%, rgba(78, 0, 8, 0.94));
+  box-shadow: 0 28px 88px rgba(86, 0, 10, 0.18);
 }
 
 .login-card {
+  position: relative;
   width: min(440px, 100%);
   display: grid;
   gap: 22px;
-  padding: 28px;
+  padding: 34px;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.78), rgba(255, 236, 232, 0.44)),
+    rgba(255, 248, 246, 0.76);
+  border: 1px solid rgba(255, 255, 255, 0.64);
+  border-radius: 26px;
+  box-shadow:
+    0 30px 86px rgba(86, 0, 10, 0.18),
+    0 1px 0 rgba(255, 255, 255, 0.76) inset;
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  backdrop-filter: blur(24px) saturate(180%);
+}
+
+.login-card .brand-mark {
+  width: 56px;
+  height: 46px;
+  background:
+    linear-gradient(135deg, #a60b1d, #8f0614 48%, #5f000a);
+  box-shadow: 0 16px 36px rgba(86, 0, 10, 0.2);
 }
 
 .login-card h1 {
@@ -1009,6 +1044,35 @@ textarea:focus {
 .login-card p {
   margin: 10px 0 0;
   color: var(--muted);
+}
+
+.login-card label {
+  color: #65000a;
+}
+
+.login-card input {
+  min-height: 56px;
+  background: rgba(255, 255, 255, 0.78);
+  border-color: rgba(143, 6, 20, 0.2);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.84) inset;
+}
+
+.login-card .button.primary {
+  min-height: 58px;
+  background:
+    linear-gradient(135deg, #a60b1d, #8f0614 48%, #5f000a);
+  border: 0;
+  box-shadow:
+    0 20px 48px rgba(86, 0, 10, 0.24),
+    0 1px 0 rgba(255, 255, 255, 0.32) inset;
+}
+
+.login-card .form-status:not(:empty) {
+  padding: 12px 14px;
+  color: #8f0614;
+  background: rgba(255, 232, 228, 0.72);
+  border: 1px solid rgba(143, 6, 20, 0.14);
+  border-radius: 18px;
 }
 
 .admin-shell {
