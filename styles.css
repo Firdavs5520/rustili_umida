@@ -2291,7 +2291,7 @@ td span {
 }
 
 .public-page .product-image {
-  --visual-url: url("/assets/course-school.jpg");
+  --visual-url: url("/assets/visual-course-school.jpg");
   --visual-position: center;
   --visual-size: cover;
   --visual-scale: 1;
@@ -2345,7 +2345,7 @@ td span {
 }
 
 .public-page .image-test {
-  --visual-url: url("/assets/course-exam.jpg");
+  --visual-url: url("/assets/visual-course-exam.jpg");
   --visual-position: 50% 50%;
   --visual-size: cover;
   --visual-scale: 1.02;
@@ -2353,7 +2353,7 @@ td span {
 }
 
 .public-page .image-online {
-  --visual-url: url("/assets/course-online.jpg");
+  --visual-url: url("/assets/visual-course-online.jpg");
   --visual-position: 52% 50%;
   --visual-size: cover;
   --visual-scale: 1.01;
@@ -2361,21 +2361,21 @@ td span {
 }
 
 .public-page .image-offline {
-  --visual-url: url("/assets/course-offline.jpg");
+  --visual-url: url("/assets/visual-course-offline.jpg");
   --visual-position: 50% 50%;
   --visual-size: cover;
   --visual-tint: linear-gradient(180deg, rgba(255, 245, 242, 0.04), rgba(88, 0, 6, 0.2));
 }
 
 .public-page .image-group {
-  --visual-url: url("/assets/course-group.jpg");
+  --visual-url: url("/assets/visual-course-group.jpg");
   --visual-position: 50% 50%;
   --visual-size: cover;
   --visual-scale: 1.01;
 }
 
 .public-page .image-writing {
-  --visual-url: url("/assets/course-writing.jpg");
+  --visual-url: url("/assets/visual-course-writing.jpg");
   --visual-position: 54% 50%;
   --visual-size: cover;
   --visual-tint: linear-gradient(180deg, rgba(143, 6, 20, 0.04), rgba(69, 0, 5, 0.2));
