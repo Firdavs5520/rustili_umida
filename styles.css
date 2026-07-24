@@ -1493,6 +1493,7 @@ td span {
 .loader-stage > * {
   position: relative;
   z-index: 1;
+  min-width: 0;
 }
 
 .loader-stage::before {
@@ -1596,6 +1597,9 @@ td span {
   margin-top: 8px;
   font-size: clamp(1.85rem, 5vw, 2.8rem);
   line-height: 0.98;
+  max-width: 100%;
+  overflow-wrap: break-word;
+  text-wrap: balance;
 }
 
 .loader-stage [data-loader-title],
@@ -1609,21 +1613,27 @@ td span {
 .loader-stage [data-loader-title] {
   display: grid;
   place-items: center;
+  width: 100%;
   min-height: 2.1em;
+  padding-inline: 4px;
 }
 
 .loader-phrase {
   display: grid;
   justify-items: center;
+  width: 100%;
   min-height: 90px;
   margin-top: 16px;
 }
 
 .loader-phrase span {
+  max-width: 100%;
   color: #fff7f5;
-  font-size: clamp(2.55rem, 8vw, 4.45rem);
+  font-size: clamp(2.35rem, 6vw, 3.6rem);
   font-weight: 800;
   line-height: 0.9;
+  overflow-wrap: anywhere;
+  text-align: center;
 }
 
 .loader-phrase small {
@@ -2883,7 +2893,7 @@ td span {
 
   .loader-stage strong {
     min-height: 2.45em;
-    font-size: 2rem;
+    font-size: clamp(1.72rem, 8vw, 2rem);
   }
 
   .loader-phrase {
@@ -2892,7 +2902,7 @@ td span {
   }
 
   .loader-phrase span {
-    font-size: clamp(3rem, 15vw, 4.7rem);
+    font-size: clamp(2.65rem, 12vw, 3.45rem);
   }
 
   .loader-phrase small {
