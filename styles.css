@@ -1,3 +1,5 @@
+@import url("https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700;800;900&display=swap");
+
 :root {
   --ink: #3a060b;
   --ink-2: #5d1118;
@@ -13,8 +15,9 @@
   --danger: #b84242;
   --warning: #936c18;
   --shadow: 0 22px 54px rgba(91, 6, 12, 0.15);
-  --font-apple: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Segoe UI", Roboto, Arial, sans-serif;
-  --font-apple-display: "SF Pro Display", -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Arial, sans-serif;
+  --font-golos: "Golos Text", "Segoe UI", Arial, sans-serif;
+  --font-apple: var(--font-golos);
+  --font-apple-display: var(--font-golos);
 }
 
 * {
