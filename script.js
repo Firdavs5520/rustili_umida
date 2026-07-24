@@ -340,6 +340,7 @@ const loaderPhrases = {
 };
 let currentLang = getSavedLanguage();
 let languageTransitionActive = false;
+let scrollAnimationFrame = 0;
 
 setupLanguage();
 setupIntroLoader();
@@ -351,11 +352,27 @@ menuToggle?.addEventListener("click", () => {
 });
 
 navLinks.forEach((link) => {
-  link.addEventListener("click", () => {
-    if (link.hash) {
+  link.addEventListener("click", (event) => {
+    if (link.hash && scrollToPageAnchor(link.hash)) {
+      event.preventDefault();
       setActiveNavLink(link.hash);
+      updateHash(link.hash);
     }
     setMenuOpen(false);
+  });
+});
+
+document.querySelectorAll('a[href^="#"]').forEach((link) => {
+  if (link.closest(".site-nav")) return;
+
+  link.addEventListener("click", (event) => {
+    const hash = link.getAttribute("href");
+    if (!hash || hash === "#") return;
+    if (!scrollToPageAnchor(hash)) return;
+
+    event.preventDefault();
+    setActiveNavLink(hash);
+    updateHash(hash);
   });
 });
 
@@ -474,6 +491,81 @@ function setupActiveNavigation() {
   window.addEventListener("resize", requestUpdate);
   window.addEventListener("hashchange", requestUpdate);
   window.addEventListener("load", requestUpdate, { once: true });
+}
+
+function getHeaderOffset() {
+  const headerHeight = header?.getBoundingClientRect().height || 80;
+  const breathingRoom = window.innerWidth <= 860 ? 18 : 24;
+  return Math.ceil(headerHeight + breathingRoom);
+}
+
+function getAnchorTarget(hash) {
+  if (!hash || hash === "#") return null;
+  const id = decodeURIComponent(hash.slice(1));
+  return document.getElementById(id);
+}
+
+function scrollToPageAnchor(hash) {
+  const target = getAnchorTarget(hash);
+  if (!target) return false;
+
+  const targetTop = hash === "#top"
+    ? 0
+    : Math.max(0, target.getBoundingClientRect().top + window.scrollY - getHeaderOffset());
+
+  animateScrollTo(targetTop, () => {
+    markLocatedSection(target);
+  });
+
+  return true;
+}
+
+function animateScrollTo(targetTop, onComplete) {
+  const startTop = window.scrollY;
+  const distance = targetTop - startTop;
+  if (Math.abs(distance) < 2) {
+    onComplete?.();
+    return;
+  }
+
+  const reduceMotion = document.documentElement.classList.contains("motion-reduced");
+  const duration = reduceMotion
+    ? Math.min(520, Math.max(320, Math.abs(distance) * 0.32))
+    : Math.min(980, Math.max(520, Math.abs(distance) * 0.42));
+  const startedAt = performance.now();
+  window.cancelAnimationFrame(scrollAnimationFrame);
+
+  const step = (now) => {
+    const progress = Math.min((now - startedAt) / duration, 1);
+    const eased = 1 - Math.pow(1 - progress, 4);
+    window.scrollTo(0, startTop + distance * eased);
+
+    if (progress < 1) {
+      scrollAnimationFrame = window.requestAnimationFrame(step);
+      return;
+    }
+
+    scrollAnimationFrame = 0;
+    window.scrollTo(0, targetTop);
+    onComplete?.();
+  };
+
+  scrollAnimationFrame = window.requestAnimationFrame(step);
+}
+
+function markLocatedSection(target) {
+  if (!target || target.id === "top") return;
+
+  target.classList.remove("section-located");
+  window.requestAnimationFrame(() => {
+    target.classList.add("section-located");
+    window.setTimeout(() => target.classList.remove("section-located"), 1300);
+  });
+}
+
+function updateHash(hash) {
+  if (window.location.hash === hash) return;
+  window.history.pushState(null, "", hash);
 }
 
 function setActiveNavLink(activeHash) {
