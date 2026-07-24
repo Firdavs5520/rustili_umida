@@ -1219,6 +1219,43 @@ textarea:focus {
   color: rgba(255, 248, 246, 0.76);
 }
 
+.amount-presets {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.amount-chip {
+  min-height: 38px;
+  padding: 7px 10px;
+  color: #7f0712;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.84), rgba(255, 235, 231, 0.62)),
+    #fffdfc;
+  border: 1px solid rgba(143, 6, 20, 0.14);
+  border-radius: 999px;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 8px 18px rgba(86, 0, 10, 0.07);
+  transition:
+    background 150ms ease,
+    border-color 150ms ease,
+    color 150ms ease,
+    box-shadow 150ms ease;
+}
+
+.amount-chip:hover,
+.amount-chip:focus-visible {
+  color: #fff8f6;
+  background:
+    linear-gradient(135deg, #b01628, #8f0614 54%, #65000a);
+  border-color: rgba(255, 255, 255, 0.28);
+  box-shadow: 0 12px 28px rgba(86, 0, 10, 0.14);
+  outline: none;
+}
+
 .calendar-control {
   position: relative;
   width: 100%;
@@ -1712,6 +1749,7 @@ textarea:focus {
 .admin-page .custom-select-trigger,
 .admin-page .custom-select-option,
 .admin-page .student-picker-option,
+.admin-page .amount-chip,
 .admin-page .calendar-toggle,
 .admin-page .calendar-nav,
 .admin-page .calendar-day {

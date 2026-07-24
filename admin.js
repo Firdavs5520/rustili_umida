@@ -21,6 +21,7 @@ const REMINDER_SENT_KEY = "umida-rus-tili-reminder-sent";
 const REMINDER_LEAD_MINUTES = 10;
 const PAYMENT_REMINDER_LEAD_HOURS = 24;
 const PAYMENT_DEFAULT_TIME = "09:00";
+const PAYMENT_PRESETS = [150000, 200000, 300000];
 let reminderTimer = 0;
 
 const tabMeta = {
@@ -431,10 +432,17 @@ function renderPayments() {
             ${studentOptions()}
           </select>
         </label>
-        <label>
-          Summa
-          <input name="amount" type="number" min="0" step="1000" placeholder="150000" required>
-        </label>
+        <div class="field-group">
+          <span class="field-label">Summa</span>
+          <input name="amount" type="text" inputmode="numeric" autocomplete="off" data-money-input placeholder="150 000" required>
+          <div class="amount-presets" aria-label="Tez summa tanlash">
+            ${PAYMENT_PRESETS.map((amount) => `
+              <button class="amount-chip" type="button" data-amount-preset="${amount}">
+                ${formatMoneyDigits(amount)}
+              </button>
+            `).join("")}
+          </div>
+        </div>
         <label>
           Sana
           <input name="paid_at" type="text" inputmode="numeric" autocomplete="off" data-date-input data-calendar-input value="${dateInputDisplay(today())}" placeholder="24.07.2026" required>
@@ -629,6 +637,11 @@ async function handlePanelClick(event) {
   const button = event.target.closest("button");
   if (!button) return;
 
+  if (button.dataset.amountPreset) {
+    applyAmountPreset(button);
+    return;
+  }
+
   const action = button.dataset.action;
   if (action === "toggle-reminders") {
     await toggleLessonReminders();
@@ -734,6 +747,7 @@ function handleLocalFilter(event) {
 function enhanceAdminControls(root = document) {
   $$("select:not([data-select-enhanced])", root).forEach(enhanceCustomSelect);
   $$("[data-date-input], [data-time-input], [data-datetime-input]", root).forEach(enhanceDateTimeInput);
+  $$("[data-money-input]:not([data-money-enhanced])", root).forEach(enhanceMoneyInput);
   $$("[data-calendar-input]:not([data-calendar-enhanced])", root).forEach(enhanceCalendarInput);
   $$('input[name="full_name"]:not([data-name-enhanced]), input[name="name"]:not([data-name-enhanced])', root).forEach(enhanceNameInput);
   $$('input[name="phone"]:not([data-phone-enhanced])', root).forEach(enhancePhoneInput);
@@ -833,6 +847,24 @@ function enhanceDateTimeInput(input) {
   });
 }
 
+function enhanceMoneyInput(input) {
+  input.dataset.moneyEnhanced = "true";
+  input.value = formatMoneyInput(input.value);
+
+  input.addEventListener("input", () => {
+    const previousLength = input.value.length;
+    const previousCaret = input.selectionStart || previousLength;
+    input.value = formatMoneyInput(input.value);
+    const diff = input.value.length - previousLength;
+    const caret = Math.max(0, previousCaret + diff);
+    input.setSelectionRange(caret, caret);
+  });
+
+  input.addEventListener("blur", () => {
+    input.value = formatMoneyInput(input.value);
+  });
+}
+
 function enhanceCalendarInput(input) {
   input.dataset.calendarEnhanced = "true";
 
@@ -910,6 +942,15 @@ function chooseCalendarDay(button) {
   input.dispatchEvent(new Event("change", { bubbles: true }));
   renderCalendar(input, calendarMonthFromInput(input));
   closeCalendars();
+}
+
+function applyAmountPreset(button) {
+  const input = $('input[name="amount"]', button.closest("form"));
+  if (!input) return;
+  input.value = formatMoneyInput(button.dataset.amountPreset || "");
+  input.dispatchEvent(new Event("input", { bubbles: true }));
+  input.dispatchEvent(new Event("change", { bubbles: true }));
+  input.focus();
 }
 
 function renderCalendar(input, monthDate) {
@@ -1098,7 +1139,7 @@ function lessonRow(lesson) {
 
 function paymentRow(payment) {
   return `
-    <tr data-status="${esc(payment.status)}" data-search="${searchText(payment.student_name, payment.method, payment.note, payment.amount, paymentDueText(payment))}">
+    <tr data-status="${esc(payment.status)}" data-search="${searchText(payment.student_name, payment.method, payment.note, payment.amount, money(payment.amount), paymentDueText(payment))}">
       <td data-label="Vaqt">${paymentDueLabel(payment)}</td>
       <td data-label="O'quvchi">${esc(payment.student_name || "Tanlanmagan")}</td>
       <td data-label="Summa"><strong>${money(payment.amount)}</strong><span>${esc(payment.method)}</span></td>
@@ -1328,6 +1369,8 @@ function lessonFormToJson(form) {
 
 function paymentFormToJson(form) {
   const data = Object.fromEntries(new FormData(form).entries());
+  data.amount = parseMoneyInput(data.amount);
+  if (data.amount <= 0) throw new Error("To'lov summasini kiriting.");
   data.paid_at = normalizeDateInput(data.paid_at, "To'lov sanasini 24.07.2026 ko'rinishida kiriting.");
   data.payment_time = normalizeTimeInput(data.payment_time, "To'lov vaqtini 09:00 ko'rinishida kiriting.");
   return JSON.stringify(data);
@@ -1829,7 +1872,7 @@ async function handleClientApi(url, options = {}) {
     store.payments.unshift({
       id: nextClientId(store, "payments"),
       student_id: body.student_id || "",
-      amount: Number(body.amount || 0),
+      amount: parseMoneyInput(body.amount),
       paid_at: body.paid_at || today(),
       payment_time: body.payment_time || PAYMENT_DEFAULT_TIME,
       method: body.method || "naqd",
@@ -1975,7 +2018,23 @@ function formatDate(value) {
 }
 
 function money(value) {
-  return `${new Intl.NumberFormat("uz-UZ").format(Number(value || 0))} so'm`;
+  return `${formatMoneyDigits(value || 0)} so'm`;
+}
+
+function formatMoneyInput(value) {
+  const digits = String(value ?? "").replace(/\D/g, "").replace(/^0+(?=\d)/, "");
+  if (!digits) return "";
+  return formatMoneyDigits(digits);
+}
+
+function formatMoneyDigits(value) {
+  const digits = String(value ?? "").replace(/\D/g, "").replace(/^0+(?=\d)/, "");
+  return digits.replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+}
+
+function parseMoneyInput(value) {
+  const digits = String(value ?? "").replace(/\D/g, "");
+  return Number(digits || 0);
 }
 
 function today() {

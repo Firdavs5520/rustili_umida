@@ -731,7 +731,7 @@ function normalizePayment(body) {
 
   return {
     student_id: Number(body.student_id || 0) || null,
-    amount: clampNumber(body.amount, 0, 999999999, 0),
+    amount: clampNumber(parseAmount(body.amount), 0, 999999999, 0),
     paid_at: requireText(body.paid_at || todayDate(), "To'lov sanasi", 40),
     payment_time: clean(body.payment_time || "09:00", 20) || "09:00",
     method: clean(body.method || "naqd", 60) || "naqd",
@@ -886,6 +886,11 @@ function clampNumber(value, min, max, fallback) {
   const number = Number(value);
   if (!Number.isFinite(number)) return fallback;
   return Math.min(max, Math.max(min, Math.round(number)));
+}
+
+function parseAmount(value) {
+  const digits = String(value ?? "").replace(/\D/g, "");
+  return Number(digits || 0);
 }
 
 function assertId(id) {
