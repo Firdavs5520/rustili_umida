@@ -13,6 +13,8 @@
   --danger: #b84242;
   --warning: #936c18;
   --shadow: 0 22px 54px rgba(91, 6, 12, 0.15);
+  --font-apple: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Segoe UI", Roboto, Arial, sans-serif;
+  --font-apple-display: "SF Pro Display", -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Arial, sans-serif;
 }
 
 * {
@@ -61,8 +63,23 @@ body {
   margin: 0;
   background: var(--paper);
   color: var(--ink);
-  font-family: "Manrope", Arial, sans-serif;
-  line-height: 1.6;
+  font-family: var(--font-apple);
+  line-height: 1.56;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1,
+h2,
+h3,
+h4,
+.brand strong,
+.site-nav a,
+.button,
+.loader-stage strong,
+.language-loader-card strong {
+  font-family: var(--font-apple-display);
 }
 
 .public-page {
