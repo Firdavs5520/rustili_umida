@@ -23,7 +23,7 @@
 
 html {
   scroll-behavior: smooth;
-  scroll-padding-top: 128px;
+  scroll-padding-top: var(--scroll-offset, 128px);
   scrollbar-color: #8f0614 #fff1ee;
   scrollbar-width: thin;
 }
@@ -2026,11 +2026,13 @@ td span {
   isolation: isolate;
   min-height: 36px;
   padding: 4px 0;
+  overflow: visible;
   color: #65000a;
   background: transparent;
   border-radius: 0;
   font-size: 1rem;
   font-weight: 700;
+  white-space: nowrap;
   text-shadow: 0 0 0 rgba(101, 0, 10, 0);
   transition:
     color 260ms ease,
@@ -2092,6 +2094,17 @@ td span {
 .public-page .site-nav a:focus-visible {
   transform: translateY(-2px);
   text-shadow: 0 10px 26px rgba(86, 0, 10, 0.18);
+}
+
+.public-page .site-nav a:not(.nav-pill):hover,
+.public-page .site-nav a:not(.nav-pill):focus-visible,
+.public-page .site-nav a:not(.nav-pill).is-active {
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.66), rgba(255, 231, 226, 0.3)),
+    rgba(255, 247, 245, 0.48);
+  box-shadow:
+    0 14px 34px rgba(86, 0, 10, 0.12),
+    0 1px 0 rgba(255, 255, 255, 0.72) inset;
 }
 
 .public-page .site-nav a:not(.nav-pill):hover::before,
@@ -2313,7 +2326,7 @@ td span {
 
 .public-page main,
 .public-page section[id] {
-  scroll-margin-top: 128px;
+  scroll-margin-top: var(--scroll-offset, 128px);
 }
 
 .public-page section[id]:target .tilda-heading,
@@ -3478,20 +3491,55 @@ td span {
   .public-page .site-nav {
     position: static;
     display: flex;
+    align-items: center;
+    justify-content: center;
     width: auto;
+    gap: clamp(6px, 1.2vw, 18px);
+    padding: 8px;
     opacity: 1;
     visibility: visible;
     transform: none;
-    background: transparent;
-    border: 0;
-    box-shadow: none;
+    background:
+      radial-gradient(circle at 12% 0%, rgba(255, 255, 255, 0.92), transparent 32%),
+      linear-gradient(135deg, rgba(255, 255, 255, 0.58), rgba(255, 228, 224, 0.28)),
+      rgba(255, 247, 245, 0.46);
+    border: 1px solid rgba(255, 255, 255, 0.58);
+    border-radius: 999px;
+    box-shadow:
+      0 18px 48px rgba(86, 0, 10, 0.12),
+      0 1px 0 rgba(255, 255, 255, 0.72) inset,
+      0 -1px 0 rgba(100, 0, 12, 0.05) inset;
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    backdrop-filter: blur(24px) saturate(180%);
     pointer-events: auto;
-    transition: none;
+    transition:
+      background 260ms ease,
+      border-color 260ms ease,
+      box-shadow 260ms ease;
   }
 
   .public-page .site-nav a {
+    min-height: 42px;
+    padding: 0 clamp(10px, 1.05vw, 16px);
+    border-radius: 999px;
     opacity: 1;
     transform: none;
+  }
+
+  .public-page .site-nav a:not(.nav-pill)::before {
+    inset: 0;
+    border-radius: inherit;
+  }
+
+  .public-page .site-nav a::after {
+    right: 16px;
+    bottom: 7px;
+    left: 16px;
+  }
+
+  .public-page .site-nav .nav-pill {
+    min-height: 42px;
+    padding: 0 clamp(18px, 1.6vw, 26px);
   }
 }
 
@@ -3508,12 +3556,12 @@ td span {
 
 @media (max-width: 860px) {
   html {
-    scroll-padding-top: 102px;
+    scroll-padding-top: var(--scroll-offset, 102px);
   }
 
   .public-page main,
   .public-page section[id] {
-    scroll-margin-top: 102px;
+    scroll-margin-top: var(--scroll-offset, 102px);
   }
 
   .public-page .site-header {
@@ -3554,7 +3602,12 @@ td span {
   .public-page .site-nav .nav-pill {
     min-height: 46px;
     padding: 10px 14px;
+    overflow: hidden;
     border-radius: 999px;
+  }
+
+  .public-page .site-nav a:not(.nav-pill)::before {
+    display: none;
   }
 
   .public-page .site-nav .nav-pill {

@@ -345,6 +345,7 @@ let scrollAnimationFrame = 0;
 setupLanguage();
 setupIntroLoader();
 setupPremiumMotion();
+setupScrollOffset();
 setupActiveNavigation();
 
 menuToggle?.addEventListener("click", () => {
@@ -493,9 +494,24 @@ function setupActiveNavigation() {
   window.addEventListener("load", requestUpdate, { once: true });
 }
 
+function setupScrollOffset() {
+  const setOffset = () => {
+    document.documentElement.style.setProperty("--scroll-offset", `${getHeaderOffset()}px`);
+  };
+
+  setOffset();
+  window.addEventListener("resize", setOffset);
+  window.addEventListener("orientationchange", setOffset);
+  window.addEventListener("load", setOffset, { once: true });
+
+  if (header && "ResizeObserver" in window) {
+    new ResizeObserver(setOffset).observe(header);
+  }
+}
+
 function getHeaderOffset() {
   const headerHeight = header?.getBoundingClientRect().height || 80;
-  const breathingRoom = window.innerWidth <= 860 ? 18 : 24;
+  const breathingRoom = window.innerWidth <= 860 ? 22 : 30;
   return Math.ceil(headerHeight + breathingRoom);
 }
 
