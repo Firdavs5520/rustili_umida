@@ -19,6 +19,8 @@ const STORAGE_COLLECTIONS = ["students", "lessons", "payments", "leads"];
 const REMINDER_ENABLED_KEY = "umida-rus-tili-reminders";
 const REMINDER_SENT_KEY = "umida-rus-tili-reminder-sent";
 const REMINDER_LEAD_MINUTES = 10;
+const PAYMENT_REMINDER_LEAD_HOURS = 24;
+const PAYMENT_DEFAULT_TIME = "09:00";
 let reminderTimer = 0;
 
 const tabMeta = {
@@ -194,7 +196,7 @@ function renderReminderCard() {
     <section class="surface reminder-card">
       <div>
         <p class="section-kicker">Eslatma</p>
-        <h2>Dars xabarlari</h2>
+        <h2>Dars va to'lov xabarlari</h2>
         <p>${esc(statusText)}</p>
       </div>
       <button class="button ${enabled ? "secondary" : "primary"} compact" type="button" data-action="toggle-reminders">
@@ -207,8 +209,8 @@ function renderReminderCard() {
 function getReminderStatusText(supported, permission, enabled) {
   if (!supported) return "Bu brauzer notification xabarlarini qo'llamaydi.";
   if (permission === "denied") return "Brauzer notification ruxsatini bloklagan. Ruxsatni browser sozlamasidan ochish kerak.";
-  if (enabled) return `Darsdan ${REMINDER_LEAD_MINUTES} daqiqa oldin va dars boshlanganda browser xabari chiqadi.`;
-  return "Yoqsangiz, panel ochiq turganda darsdan oldin browser xabari chiqadi.";
+  if (enabled) return `Darsdan ${REMINDER_LEAD_MINUTES} daqiqa oldin, to'lovdan ${PAYMENT_REMINDER_LEAD_HOURS} soat oldin va vaqti kelganda browser xabari chiqadi.`;
+  return "Yoqsangiz, panel ochiq turganda dars va kutilayotgan to'lovlar bo'yicha browser xabari chiqadi.";
 }
 
 function renderStudents() {
@@ -416,6 +418,10 @@ function renderPayments() {
           <input name="paid_at" type="date" value="${today()}" required>
         </label>
         <label>
+          To'lov vaqti
+          <input name="payment_time" type="time" value="${PAYMENT_DEFAULT_TIME}" required>
+        </label>
+        <label>
           Usul
           <select name="method">
             ${options(["naqd", "karta", "click", "payme", "bank"])}
@@ -424,7 +430,7 @@ function renderPayments() {
         <label>
           Status
           <select name="status">
-            ${options(["paid", "pending", "cancelled"])}
+            ${options(["pending", "paid", "cancelled"])}
           </select>
         </label>
         <label class="wide">
@@ -454,7 +460,7 @@ function renderPayments() {
             <table>
               <thead>
                 <tr>
-                  <th>Sana</th>
+                  <th>Vaqt</th>
                   <th>O'quvchi</th>
                   <th>Summa</th>
                   <th>Status</th>
@@ -618,6 +624,15 @@ async function handlePanelClick(event) {
     renderPayments();
   }
 
+  if (action === "payment-paid") {
+    await fetchJson(`/api/payments/${id}`, {
+      method: "PUT",
+      body: JSON.stringify({ status: "paid" })
+    });
+    await loadAll();
+    renderPayments();
+  }
+
   if (action === "lead-contacted" || action === "lead-archived") {
     await fetchJson(`/api/leads/${id}`, {
       method: "PUT",
@@ -693,12 +708,13 @@ function lessonRow(lesson) {
 
 function paymentRow(payment) {
   return `
-    <tr data-status="${esc(payment.status)}" data-search="${searchText(payment.student_name, payment.method, payment.note, payment.amount)}">
-      <td>${formatDate(payment.paid_at)}</td>
+    <tr data-status="${esc(payment.status)}" data-search="${searchText(payment.student_name, payment.method, payment.note, payment.amount, paymentDueText(payment))}">
+      <td>${paymentDueLabel(payment)}</td>
       <td>${esc(payment.student_name || "Tanlanmagan")}</td>
       <td><strong>${money(payment.amount)}</strong><span>${esc(payment.method)}</span></td>
       <td>${badge(payment.status)}</td>
       <td class="row-actions">
+        ${payment.status === "pending" ? `<button class="button secondary compact" type="button" data-action="payment-paid" data-id="${payment.id}">To'landi</button>` : ""}
         <button class="button danger compact" type="button" data-action="delete-payment" data-id="${payment.id}">O'chirish</button>
       </td>
     </tr>
@@ -908,8 +924,8 @@ async function toggleLessonReminders() {
   }
 
   setLessonReminderEnabled(true);
-  state.reminderMessage = `Eslatma yoqildi. Darsdan ${REMINDER_LEAD_MINUTES} daqiqa oldin browser xabari chiqadi.`;
-  sendNotification("Eslatma yoqildi", "Rejadagi darslar uchun browser xabari tayyor.");
+  state.reminderMessage = `Eslatma yoqildi. Dars va to'lovlar uchun browser xabari chiqadi.`;
+  sendNotification("Eslatma yoqildi", "Rejadagi darslar va kutilayotgan to'lovlar uchun browser xabari tayyor.");
   startLessonReminderLoop();
 }
 
@@ -937,7 +953,11 @@ function startLessonReminderLoop() {
   if (!state.remindersEnabled || !("Notification" in window) || Notification.permission !== "granted") return;
 
   checkLessonReminders();
-  reminderTimer = window.setInterval(checkLessonReminders, 30000);
+  checkPaymentReminders();
+  reminderTimer = window.setInterval(() => {
+    checkLessonReminders();
+    checkPaymentReminders();
+  }, 30000);
 }
 
 function checkLessonReminders() {
@@ -978,11 +998,65 @@ function sendLessonNotification(lesson, title) {
   sendNotification(title, body);
 }
 
+function checkPaymentReminders() {
+  const sent = readSentReminders();
+  const nowTime = Date.now();
+  let changed = false;
+
+  state.payments
+    .filter((payment) => payment.status === "pending")
+    .forEach((payment) => {
+      const dueDate = parsePaymentDueDate(payment);
+      if (!dueDate) return;
+
+      const dueTime = dueDate.getTime();
+      const beforeTime = dueTime - PAYMENT_REMINDER_LEAD_HOURS * 60 * 60000;
+      const beforeKey = `payment:${payment.id}:${payment.paid_at}:${payment.payment_time || PAYMENT_DEFAULT_TIME}:before`;
+      const dueKey = `payment:${payment.id}:${payment.paid_at}:${payment.payment_time || PAYMENT_DEFAULT_TIME}:due`;
+
+      if (nowTime >= beforeTime && nowTime < dueTime && !sent[beforeKey]) {
+        sendPaymentNotification(payment, `To'lov ${PAYMENT_REMINDER_LEAD_HOURS} soatdan keyin`);
+        sent[beforeKey] = nowTime;
+        changed = true;
+      }
+
+      if (nowTime >= dueTime && nowTime < dueTime + 24 * 60 * 60000 && !sent[dueKey]) {
+        sendPaymentNotification(payment, "To'lov vaqti keldi");
+        sent[dueKey] = nowTime;
+        changed = true;
+      }
+    });
+
+  if (changed) writeSentReminders(sent);
+}
+
+function sendPaymentNotification(payment, title) {
+  const student = payment.student_name || "O'quvchi tanlanmagan";
+  const body = `${paymentDueText(payment)} | ${student} | ${money(payment.amount)} | ${label(payment.method)}`;
+  sendNotification(title, body);
+}
+
+function parsePaymentDueDate(payment) {
+  if (!payment.paid_at) return null;
+  const date = new Date(`${payment.paid_at}T${payment.payment_time || PAYMENT_DEFAULT_TIME}`);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function paymentDueText(payment) {
+  const dueDate = parsePaymentDueDate(payment);
+  if (!dueDate) return formatDate(payment.paid_at);
+  return `${formatDateObject(dueDate)}, ${formatClock(dueDate)}`;
+}
+
+function paymentDueLabel(payment) {
+  return esc(paymentDueText(payment));
+}
+
 function sendNotification(title, body) {
   try {
     new Notification(title, {
       body,
-      tag: `umida-rus-tili-${title}`,
+      tag: `umida-rus-tili-${title}-${body}`.slice(0, 128),
       requireInteraction: false
     });
   } catch {
@@ -1171,6 +1245,7 @@ async function handleClientApi(url, options = {}) {
       student_id: body.student_id || "",
       amount: Number(body.amount || 0),
       paid_at: body.paid_at || today(),
+      payment_time: body.payment_time || PAYMENT_DEFAULT_TIME,
       method: body.method || "naqd",
       status: body.status || "paid",
       note: body.note || "",
@@ -1181,6 +1256,12 @@ async function handleClientApi(url, options = {}) {
   }
 
   const paymentMatch = pathname.match(/^\/api\/payments\/(\d+)$/);
+  if (paymentMatch && method === "PUT") {
+    updateClientItem(store, "payments", Number(paymentMatch[1]), { status: body.status || "paid" });
+    writeCabinetStore(store);
+    return { ok: true };
+  }
+
   if (paymentMatch && method === "DELETE") {
     removeClientItem(store, "payments", Number(paymentMatch[1]));
     writeCabinetStore(store);

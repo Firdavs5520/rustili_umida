@@ -82,6 +82,7 @@ function initDatabase() {
       student_id INTEGER,
       amount INTEGER NOT NULL,
       paid_at TEXT NOT NULL,
+      payment_time TEXT NOT NULL DEFAULT '09:00',
       method TEXT NOT NULL DEFAULT 'naqd',
       status TEXT NOT NULL DEFAULT 'paid',
       note TEXT NOT NULL DEFAULT '',
@@ -99,6 +100,14 @@ function initDatabase() {
       created_at TEXT NOT NULL
     );
   `);
+
+  ensureColumn("payments", "payment_time", "TEXT NOT NULL DEFAULT '09:00'");
+}
+
+function ensureColumn(table, column, definition) {
+  const columns = db.prepare(`PRAGMA table_info(${table})`).all();
+  if (columns.some((item) => item.name === column)) return;
+  db.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${definition}`);
 }
 
 function seedDatabase() {
@@ -162,9 +171,9 @@ function seedDatabase() {
   );
 
   db.prepare(`
-    INSERT INTO payments (student_id, amount, paid_at, method, status, note, created_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?)
-  `).run(Number(studentA), 150000, todayDate(), "naqd", "paid", "Namuna to'lov", nowValue);
+    INSERT INTO payments (student_id, amount, paid_at, payment_time, method, status, note, created_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+  `).run(Number(studentA), 150000, todayDate(), "09:00", "naqd", "paid", "Namuna to'lov", nowValue);
 }
 
 async function handleApi(req, res, url) {
@@ -275,6 +284,12 @@ async function handleApi(req, res, url) {
   }
 
   const paymentMatch = pathname.match(/^\/api\/payments\/(\d+)$/);
+  if (paymentMatch && method === "PUT") {
+    const payment = updatePaymentStatus(Number(paymentMatch[1]), await readJson(req));
+    sendJson(res, 200, { payment, summary: getSummary() });
+    return;
+  }
+
   if (paymentMatch && method === "DELETE") {
     deleteById("payments", Number(paymentMatch[1]));
     sendJson(res, 200, { ok: true, summary: getSummary() });
@@ -317,7 +332,7 @@ async function handleApi(req, res, url) {
 
   if (pathname === "/api/export/payments.csv" && method === "GET") {
     sendCsv(res, "payments.csv", toCsv(listPayments(), [
-      "id", "student_name", "amount", "paid_at", "method", "status", "note"
+      "id", "student_name", "amount", "paid_at", "payment_time", "method", "status", "note"
     ]));
     return;
   }
@@ -507,22 +522,38 @@ function listPayments() {
     SELECT payments.*, students.full_name AS student_name
     FROM payments
     LEFT JOIN students ON students.id = payments.student_id
-    ORDER BY paid_at DESC, id DESC
+    ORDER BY paid_at DESC, payment_time DESC, id DESC
   `).all();
 }
 
 function createPayment(body) {
   const data = normalizePayment(body);
   const result = db.prepare(`
-    INSERT INTO payments (student_id, amount, paid_at, method, status, note, created_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?)
-  `).run(data.student_id, data.amount, data.paid_at, data.method, data.status, data.note, now());
+    INSERT INTO payments (student_id, amount, paid_at, payment_time, method, status, note, created_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+  `).run(data.student_id, data.amount, data.paid_at, data.payment_time, data.method, data.status, data.note, now());
   return db.prepare(`
     SELECT payments.*, students.full_name AS student_name
     FROM payments
     LEFT JOIN students ON students.id = payments.student_id
     WHERE payments.id = ?
   `).get(result.lastInsertRowid);
+}
+
+function updatePaymentStatus(id, body) {
+  assertId(id);
+  const status = clean(body.status || "paid", 40);
+  if (!["paid", "pending", "cancelled"].includes(status)) {
+    throw httpError(400, "To'lov statusi noto'g'ri.");
+  }
+
+  db.prepare("UPDATE payments SET status = ? WHERE id = ?").run(status, id);
+  return db.prepare(`
+    SELECT payments.*, students.full_name AS student_name
+    FROM payments
+    LEFT JOIN students ON students.id = payments.student_id
+    WHERE payments.id = ?
+  `).get(Number(id));
 }
 
 function listLeads() {
@@ -601,6 +632,7 @@ function normalizePayment(body) {
     student_id: Number(body.student_id || 0) || null,
     amount: clampNumber(body.amount, 0, 999999999, 0),
     paid_at: requireText(body.paid_at || todayDate(), "To'lov sanasi", 40),
+    payment_time: clean(body.payment_time || "09:00", 20) || "09:00",
     method: clean(body.method || "naqd", 60) || "naqd",
     status,
     note: clean(body.note || "", 800)
