@@ -145,6 +145,7 @@ function renderDashboard() {
     </div>
 
     ${renderReminderCard()}
+    ${renderStorageCard()}
 
     <div class="dashboard-grid">
       <section class="surface">
@@ -211,6 +212,23 @@ function getReminderStatusText(supported, permission, enabled) {
   if (permission === "denied") return "Brauzer notification ruxsatini bloklagan. Ruxsatni browser sozlamasidan ochish kerak.";
   if (enabled) return `Darsdan ${REMINDER_LEAD_MINUTES} daqiqa oldin, to'lovdan ${PAYMENT_REMINDER_LEAD_HOURS} soat oldin va vaqti kelganda browser xabari chiqadi.`;
   return "Yoqsangiz, panel ochiq turganda dars va kutilayotgan to'lovlar bo'yicha browser xabari chiqadi.";
+}
+
+function renderStorageCard() {
+  const isBrowserStorage = state.storageMode === "browser";
+  const text = isBrowserStorage
+    ? "Ma'lumotlar shu telefon yoki kompyuter brauzerida avtomatik saqlanadi. Browser xotirasi tozalansa yoki boshqa qurilmadan kirsangiz, u yerda alohida bo'ladi."
+    : "Ma'lumotlar lokal serverdagi bazada saqlanadi.";
+
+  return `
+    <section class="surface storage-card">
+      <div>
+        <p class="section-kicker">Saqlash</p>
+        <h2>Avtomatik xotira</h2>
+        <p>${esc(text)}</p>
+      </div>
+    </section>
+  `;
 }
 
 function renderStudents() {
@@ -670,14 +688,14 @@ function handleLocalFilter(event) {
 function studentRow(student) {
   return `
     <tr data-status="${esc(student.status)}" data-search="${searchText(student.full_name, student.phone, student.goal, student.notes)}">
-      <td>
+      <td data-label="O'quvchi">
         <strong>${esc(student.full_name)}</strong>
         <span>${esc(student.phone)}</span>
       </td>
-      <td>${esc(student.level)}</td>
-      <td>${esc(student.goal || "-")}</td>
-      <td>${badge(student.status)}</td>
-      <td class="row-actions">
+      <td data-label="Daraja">${esc(student.level)}</td>
+      <td data-label="Maqsad">${esc(student.goal || "-")}</td>
+      <td data-label="Status">${badge(student.status)}</td>
+      <td class="row-actions" data-label="Amallar">
         <button class="button secondary compact" type="button" data-action="edit-student" data-id="${student.id}">Edit</button>
         <button class="button danger compact" type="button" data-action="archive-student" data-id="${student.id}">Arxiv</button>
       </td>
@@ -688,17 +706,17 @@ function studentRow(student) {
 function lessonRow(lesson) {
   return `
     <tr data-status="${esc(lesson.status)}" data-search="${searchText(lesson.title, lesson.student_name, lessonFormatLabel(lesson.format), lesson.topic, lesson.homework, lesson.notes)}">
-      <td>
+      <td data-label="Vaqt">
         <strong>${lessonTimeRange(lesson)}</strong>
         <span>${esc(lesson.duration_minutes)} daqiqa</span>
       </td>
-      <td>
+      <td data-label="Dars">
         <strong>${esc(lesson.title)}</strong>
         <span>${lessonFormatLabel(lesson.format)} - ${esc(lesson.topic || "-")}</span>
       </td>
-      <td>${esc(lesson.student_name || "Tanlanmagan")}</td>
-      <td>${badge(lesson.status)}</td>
-      <td class="row-actions">
+      <td data-label="O'quvchi">${esc(lesson.student_name || "Tanlanmagan")}</td>
+      <td data-label="Status">${badge(lesson.status)}</td>
+      <td class="row-actions" data-label="Amallar">
         <button class="button secondary compact" type="button" data-action="edit-lesson" data-id="${lesson.id}">Edit</button>
         <button class="button danger compact" type="button" data-action="delete-lesson" data-id="${lesson.id}">O'chirish</button>
       </td>
@@ -709,11 +727,11 @@ function lessonRow(lesson) {
 function paymentRow(payment) {
   return `
     <tr data-status="${esc(payment.status)}" data-search="${searchText(payment.student_name, payment.method, payment.note, payment.amount, paymentDueText(payment))}">
-      <td>${paymentDueLabel(payment)}</td>
-      <td>${esc(payment.student_name || "Tanlanmagan")}</td>
-      <td><strong>${money(payment.amount)}</strong><span>${esc(payment.method)}</span></td>
-      <td>${badge(payment.status)}</td>
-      <td class="row-actions">
+      <td data-label="Vaqt">${paymentDueLabel(payment)}</td>
+      <td data-label="O'quvchi">${esc(payment.student_name || "Tanlanmagan")}</td>
+      <td data-label="Summa"><strong>${money(payment.amount)}</strong><span>${esc(payment.method)}</span></td>
+      <td data-label="Status">${badge(payment.status)}</td>
+      <td class="row-actions" data-label="Amallar">
         ${payment.status === "pending" ? `<button class="button secondary compact" type="button" data-action="payment-paid" data-id="${payment.id}">To'landi</button>` : ""}
         <button class="button danger compact" type="button" data-action="delete-payment" data-id="${payment.id}">O'chirish</button>
       </td>
@@ -724,17 +742,17 @@ function paymentRow(payment) {
 function leadRow(lead) {
   return `
     <tr data-status="${esc(lead.status)}" data-search="${searchText(lead.name, lead.phone, lead.goal, lead.message)}">
-      <td>${formatDateTime(lead.created_at)}</td>
-      <td>
+      <td data-label="Vaqt">${formatDateTime(lead.created_at)}</td>
+      <td data-label="Mijoz">
         <strong>${esc(lead.name)}</strong>
         <span>${esc(lead.phone)}</span>
       </td>
-      <td>
+      <td data-label="Maqsad">
         <strong>${esc(lead.goal || "-")}</strong>
         <span>${esc(lead.message || "")}</span>
       </td>
-      <td>${badge(lead.status)}</td>
-      <td class="row-actions">
+      <td data-label="Status">${badge(lead.status)}</td>
+      <td class="row-actions" data-label="Amallar">
         <button class="button secondary compact" type="button" data-action="lead-contacted" data-id="${lead.id}">Bog'landim</button>
         <button class="button danger compact" type="button" data-action="lead-archived" data-id="${lead.id}">Arxiv</button>
         <button class="button danger ghost compact" type="button" data-action="delete-lead" data-id="${lead.id}">O'chirish</button>
