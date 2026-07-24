@@ -467,6 +467,7 @@ function setMenuOpen(isOpen) {
   if (!header) return;
 
   header.classList.toggle("nav-open", isOpen);
+  document.body.classList.toggle("nav-menu-open", isOpen);
   menuToggle?.setAttribute("aria-expanded", String(isOpen));
   menuToggle?.setAttribute("aria-label", isOpen ? t("menu.close") : t("menu.open"));
 }
