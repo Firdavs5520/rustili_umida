@@ -2,9 +2,9 @@
   --ink: #3a060b;
   --ink-2: #5d1118;
   --muted: #8a5a5e;
-  --blue: #a7050d;
-  --blue-dark: #880008;
-  --coral: #c94436;
+  --blue: #7f0712;
+  --blue-dark: #5f000a;
+  --coral: #a73642;
   --green: #357466;
   --paper: #fff3f0;
   --soft: #ffe4df;
@@ -140,7 +140,7 @@ svg {
   min-width: 38px;
   min-height: 34px;
   padding: 6px 9px;
-  color: #8b0009;
+  color: #65000a;
   background: transparent;
   border: 0;
   border-radius: 999px;
@@ -153,7 +153,7 @@ svg {
 .lang-switch button:hover,
 .lang-switch button:focus-visible {
   color: #fff7f5;
-  background: #b6000c;
+  background: #8f0614;
 }
 
 .site-nav {
@@ -278,8 +278,8 @@ svg {
 
 .site-header.nav-open .menu-toggle {
   background: #fff1ee;
-  border-color: rgba(182, 0, 12, 0.2);
-  box-shadow: 0 12px 30px rgba(116, 0, 8, 0.12);
+  border-color: rgba(143, 6, 20, 0.2);
+  box-shadow: 0 12px 30px rgba(86, 0, 10, 0.12);
 }
 
 .site-header.nav-open .menu-toggle span:nth-child(1) {
@@ -322,7 +322,7 @@ svg {
   color: var(--white);
   background: var(--blue);
   border-radius: 54px;
-  box-shadow: 0 28px 78px rgba(132, 0, 8, 0.28);
+  box-shadow: 0 28px 78px rgba(88, 0, 11, 0.28);
 }
 
 .hero-portrait {
@@ -1540,8 +1540,8 @@ td span {
   place-items: center;
   color: #fff7f5;
   background:
-    linear-gradient(135deg, rgba(116, 0, 8, 0.96), rgba(184, 0, 13, 0.98) 54%, rgba(104, 0, 7, 0.96)),
-    #b6000c;
+    linear-gradient(135deg, rgba(86, 0, 10, 0.96), rgba(151, 8, 22, 0.98) 54%, rgba(74, 0, 8, 0.96)),
+    #8f0614;
   pointer-events: auto;
 }
 
@@ -1916,7 +1916,7 @@ td span {
   position: relative;
   width: 78px;
   height: 50px;
-  color: #a7050d;
+  color: #7f0712;
   background: transparent;
   font-size: 0;
   border-radius: 0;
@@ -1931,7 +1931,7 @@ td span {
   width: 52px;
   height: 26px;
   border-radius: 52px 52px 0 0;
-  background: #a7050d;
+  background: #7f0712;
   transform-origin: bottom center;
 }
 
@@ -1944,7 +1944,7 @@ td span {
 }
 
 .public-page .brand strong {
-  color: #8b0009;
+  color: #65000a;
   font-size: 0.96rem;
 }
 
@@ -1961,7 +1961,7 @@ td span {
   position: relative;
   min-height: 36px;
   padding: 4px 0;
-  color: #8b0009;
+  color: #65000a;
   background: transparent;
   border-radius: 0;
   font-size: 1rem;
@@ -1976,7 +1976,7 @@ td span {
   left: 0;
   height: 2px;
   border-radius: 999px;
-  background: #b6000c;
+  background: #8f0614;
   opacity: 0;
   transform: scaleX(0.22);
   transform-origin: center;
@@ -1989,7 +1989,7 @@ td span {
 .public-page .site-nav a:focus-visible,
 .public-page .site-nav .nav-pill,
 .public-page .site-nav a.is-active {
-  color: #b6000c;
+  color: #8f0614;
   background: transparent;
 }
 
@@ -2014,7 +2014,7 @@ td span {
   gap: 56px;
   grid-template-columns: minmax(300px, 0.88fr) minmax(360px, 1.12fr);
   padding: 40px;
-  background: #b6000c;
+  background: #8f0614;
   border-radius: 52px;
   box-shadow: none;
 }
@@ -2134,7 +2134,7 @@ td span {
 
 .public-page .tilda-heading h2,
 .public-page .result-poster h2 {
-  color: #a0000a;
+  color: #7a0610;
   font-size: clamp(2.4rem, 4vw, 3.8rem);
   line-height: 1.02;
 }
@@ -2183,7 +2183,7 @@ td span {
   width: 82px;
   height: 40px;
   border-radius: 82px 82px 0 0;
-  background: #b6000c;
+  background: #8f0614;
   transform-origin: bottom center;
 }
 
@@ -2202,10 +2202,10 @@ td span {
   overflow: hidden;
   isolation: isolate;
   border-radius: 18px;
-  background: #b6000c;
+  background: #8f0614;
   box-shadow:
     0 22px 44px rgba(148, 8, 17, 0.15),
-    0 0 0 1px rgba(182, 0, 12, 0.08);
+    0 0 0 1px rgba(143, 6, 20, 0.08);
 }
 
 .public-page .profile-media::before {
@@ -2267,7 +2267,7 @@ td span {
 .public-page .profile-tile .button,
 .public-page .product-card .button {
   min-width: 210px;
-  background: #b6000c;
+  background: #8f0614;
   box-shadow: none;
   text-transform: uppercase;
 }
@@ -2295,7 +2295,7 @@ td span {
   --visual-position: center;
   --visual-size: cover;
   --visual-scale: 1;
-  --visual-tint: linear-gradient(180deg, rgba(182, 0, 12, 0.06), rgba(108, 0, 7, 0.24));
+  --visual-tint: linear-gradient(180deg, rgba(143, 6, 20, 0.06), rgba(108, 0, 7, 0.24));
   position: relative;
   width: 100%;
   aspect-ratio: 0.92 / 1;
@@ -2303,11 +2303,11 @@ td span {
   isolation: isolate;
   background:
     linear-gradient(135deg, rgba(255, 247, 244, 0.42), rgba(255, 247, 244, 0)),
-    #b6000c;
+    #8f0614;
   border-radius: 18px;
   box-shadow:
     0 22px 44px rgba(148, 8, 17, 0.14),
-    0 0 0 1px rgba(182, 0, 12, 0.08);
+    0 0 0 1px rgba(143, 6, 20, 0.08);
 }
 
 .public-page .product-image::before {
@@ -2349,7 +2349,7 @@ td span {
   --visual-position: 50% 50%;
   --visual-size: cover;
   --visual-scale: 1.02;
-  --visual-tint: linear-gradient(180deg, rgba(182, 0, 12, 0.08), rgba(63, 0, 4, 0.18));
+  --visual-tint: linear-gradient(180deg, rgba(143, 6, 20, 0.08), rgba(63, 0, 4, 0.18));
 }
 
 .public-page .image-online {
@@ -2378,7 +2378,7 @@ td span {
   --visual-url: url("/assets/course-writing.jpg");
   --visual-position: 54% 50%;
   --visual-size: cover;
-  --visual-tint: linear-gradient(180deg, rgba(182, 0, 12, 0.04), rgba(69, 0, 5, 0.2));
+  --visual-tint: linear-gradient(180deg, rgba(143, 6, 20, 0.04), rgba(69, 0, 5, 0.2));
 }
 
 .public-page .product-card h3 {
@@ -2396,7 +2396,7 @@ td span {
   min-height: 42px;
   margin: 14px 0 18px;
   padding: 7px 18px;
-  color: #b6000c;
+  color: #8f0614;
   background: #fff7f5;
   border: 1px solid #f1d5d1;
   border-radius: 999px;
@@ -2412,7 +2412,7 @@ td span {
 .public-page .lessons-band .button {
   margin-top: 26px;
   min-width: 180px;
-  background: #b6000c;
+  background: #8f0614;
   box-shadow: none;
   text-transform: uppercase;
 }
@@ -2430,7 +2430,7 @@ td span {
 }
 
 .public-page .lesson-feature-grid h3 {
-  color: #b6000c;
+  color: #8f0614;
   font-size: 1.2rem;
 }
 
@@ -2446,7 +2446,7 @@ td span {
   gap: 54px;
   align-items: center;
   padding: 58px;
-  background: #b6000c;
+  background: #8f0614;
   border-radius: 46px;
 }
 
@@ -2483,7 +2483,7 @@ td span {
 }
 
 .public-page .contact-copy h2 {
-  color: #a0000a;
+  color: #7a0610;
   font-size: clamp(2.2rem, 3.5vw, 3.2rem);
 }
 
@@ -2492,7 +2492,7 @@ td span {
 }
 
 .public-page .contact-lines a {
-  color: #a0000a;
+  color: #7a0610;
 }
 
 .public-page .contact-form {
@@ -2503,7 +2503,7 @@ td span {
 }
 
 .public-page .contact-form label {
-  color: #a0000a;
+  color: #7a0610;
   font-size: 0.86rem;
   text-transform: uppercase;
 }
@@ -2519,7 +2519,7 @@ td span {
 
 .public-page .contact-form .button {
   min-height: 56px;
-  background: #b6000c;
+  background: #8f0614;
   box-shadow: none;
   text-transform: uppercase;
 }
@@ -2533,7 +2533,7 @@ td span {
     -webkit-backdrop-filter: blur(26px) saturate(180%);
     backdrop-filter: blur(26px) saturate(180%);
     box-shadow:
-      0 18px 48px rgba(116, 0, 8, 0.1),
+      0 18px 48px rgba(86, 0, 10, 0.1),
       0 1px 0 rgba(255, 255, 255, 0.62) inset;
   }
 
@@ -2547,17 +2547,17 @@ td span {
     -webkit-backdrop-filter: blur(22px) saturate(180%);
     backdrop-filter: blur(22px) saturate(180%);
     box-shadow:
-      0 18px 46px rgba(116, 0, 8, 0.12),
+      0 18px 46px rgba(86, 0, 10, 0.12),
       0 1px 0 rgba(255, 255, 255, 0.68) inset,
-      0 -1px 0 rgba(150, 0, 10, 0.05) inset;
+      0 -1px 0 rgba(100, 0, 12, 0.05) inset;
   }
 
   .public-page .lang-switch button.active,
   .public-page .site-nav .nav-pill {
     background:
-      linear-gradient(135deg, rgba(182, 0, 12, 0.92), rgba(137, 0, 8, 0.86));
+      linear-gradient(135deg, rgba(143, 6, 20, 0.92), rgba(94, 0, 11, 0.86));
     box-shadow:
-      0 10px 26px rgba(150, 0, 10, 0.2),
+      0 10px 26px rgba(100, 0, 12, 0.2),
       0 1px 0 rgba(255, 255, 255, 0.28) inset;
   }
 
@@ -2585,7 +2585,7 @@ td span {
     -webkit-backdrop-filter: blur(18px) saturate(170%);
     backdrop-filter: blur(18px) saturate(170%);
     box-shadow:
-      0 14px 34px rgba(116, 0, 8, 0.08),
+      0 14px 34px rgba(86, 0, 10, 0.08),
       0 1px 0 rgba(255, 255, 255, 0.76) inset;
   }
 }
@@ -2599,7 +2599,7 @@ td span {
 .public-page .site-footer {
   padding-block: 38px;
   color: #fff7f5;
-  background: #b6000c;
+  background: #8f0614;
 }
 
 .public-page .site-header,
@@ -3120,7 +3120,7 @@ td span {
 
   .public-page .site-nav .nav-pill {
     color: #fff7f5;
-    background: #b6000c;
+    background: #8f0614;
   }
 
   .public-page .site-nav a::after {
@@ -3129,8 +3129,8 @@ td span {
 
   .public-page .site-nav a.is-active {
     color: #fff7f5;
-    background: #b6000c;
-    box-shadow: 0 12px 28px rgba(150, 0, 10, 0.16);
+    background: #8f0614;
+    box-shadow: 0 12px 28px rgba(100, 0, 12, 0.16);
   }
 
   .public-page .tilda-hero {
@@ -3255,7 +3255,7 @@ td span {
       box-shadow:
         0 28px 72px rgba(105, 0, 8, 0.18),
         0 1px 0 rgba(255, 255, 255, 0.72) inset,
-        0 -1px 0 rgba(150, 0, 10, 0.06) inset;
+        0 -1px 0 rgba(100, 0, 12, 0.06) inset;
     }
 
     .public-page .site-nav a,
@@ -3275,10 +3275,10 @@ td span {
     .public-page .site-nav .nav-pill {
       color: #fff7f5;
       background:
-        linear-gradient(135deg, rgba(190, 6, 18, 0.94), rgba(132, 0, 8, 0.9));
+        linear-gradient(135deg, rgba(158, 10, 26, 0.94), rgba(88, 0, 11, 0.9));
       border-color: rgba(255, 255, 255, 0.22);
       box-shadow:
-        0 14px 34px rgba(150, 0, 10, 0.18),
+        0 14px 34px rgba(100, 0, 12, 0.18),
         0 1px 0 rgba(255, 255, 255, 0.28) inset;
     }
   }

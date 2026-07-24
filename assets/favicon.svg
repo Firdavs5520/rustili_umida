@@ -1,9 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
   <defs>
     <linearGradient id="bg" x1="8" x2="56" y1="6" y2="58" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#cf1019"/>
-      <stop offset="0.54" stop-color="#b6000c"/>
-      <stop offset="1" stop-color="#7b0008"/>
+      <stop stop-color="#a60b1d"/>
+      <stop offset="0.54" stop-color="#8f0614"/>
+      <stop offset="1" stop-color="#4e0008"/>
     </linearGradient>
     <linearGradient id="shine" x1="14" x2="50" y1="10" y2="54" gradientUnits="userSpaceOnUse">
       <stop stop-color="#fff7f5" stop-opacity="0.96"/>
@@ -15,5 +15,5 @@
   <path d="M16 19c7-4 14 0 16 7v20c-3-7-9-10-16-7V19Z" fill="url(#shine)"/>
   <path d="M48 19c-7-4-14 0-16 7v20c3-7 9-10 16-7V19Z" fill="url(#shine)"/>
   <path d="M21 43h22" stroke="#fff7f5" stroke-width="3" stroke-linecap="round" opacity="0.78"/>
-  <text x="32" y="36" fill="#9a0009" font-family="Arial, sans-serif" font-size="13" font-weight="800" text-anchor="middle">RU</text>
+  <text x="32" y="36" fill="#65000a" font-family="Arial, sans-serif" font-size="13" font-weight="800" text-anchor="middle">RU</text>
 </svg>
