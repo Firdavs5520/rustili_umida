@@ -1,6 +1,7 @@
 const header = document.querySelector("[data-header]");
 const menuToggle = document.querySelector(".menu-toggle");
 const navLinks = document.querySelectorAll(".site-nav a");
+const sectionNavLinks = Array.from(navLinks).filter((link) => link.hash);
 const leadForm = document.querySelector("#leadForm");
 const statusLine = document.querySelector(".form-status");
 const goalSelect = leadForm?.querySelector('select[name="goal"]');
@@ -343,18 +344,18 @@ let languageTransitionActive = false;
 setupLanguage();
 setupIntroLoader();
 setupPremiumMotion();
+setupActiveNavigation();
 
 menuToggle?.addEventListener("click", () => {
-  const isOpen = header.classList.toggle("nav-open");
-  menuToggle.setAttribute("aria-expanded", String(isOpen));
-  menuToggle.setAttribute("aria-label", isOpen ? t("menu.close") : t("menu.open"));
+  setMenuOpen(!header?.classList.contains("nav-open"));
 });
 
 navLinks.forEach((link) => {
   link.addEventListener("click", () => {
-    header.classList.remove("nav-open");
-    menuToggle?.setAttribute("aria-expanded", "false");
-    menuToggle?.setAttribute("aria-label", t("menu.open"));
+    if (link.hash) {
+      setActiveNavLink(link.hash);
+    }
+    setMenuOpen(false);
   });
 });
 
@@ -369,17 +370,13 @@ document.addEventListener("click", (event) => {
   if (!header?.classList.contains("nav-open")) return;
   if (header.contains(event.target)) return;
 
-  header.classList.remove("nav-open");
-  menuToggle?.setAttribute("aria-expanded", "false");
-  menuToggle?.setAttribute("aria-label", t("menu.open"));
+  setMenuOpen(false);
 });
 
 document.addEventListener("keydown", (event) => {
   if (event.key !== "Escape" || !header?.classList.contains("nav-open")) return;
 
-  header.classList.remove("nav-open");
-  menuToggle?.setAttribute("aria-expanded", "false");
-  menuToggle?.setAttribute("aria-label", t("menu.open"));
+  setMenuOpen(false);
   menuToggle?.focus();
 });
 
@@ -422,6 +419,74 @@ leadForm?.addEventListener("submit", async (event) => {
     statusLine.innerHTML = `${t("form.thanks")} ${t("form.copiedShort")} <a href="${TELEGRAM_URL}" target="_blank" rel="noopener">${t("form.telegramLink")}</a>`;
   }
 });
+
+function setMenuOpen(isOpen) {
+  if (!header) return;
+
+  header.classList.toggle("nav-open", isOpen);
+  menuToggle?.setAttribute("aria-expanded", String(isOpen));
+  menuToggle?.setAttribute("aria-label", isOpen ? t("menu.close") : t("menu.open"));
+}
+
+function setupActiveNavigation() {
+  if (!sectionNavLinks.length) return;
+
+  const sections = sectionNavLinks
+    .map((link) => ({
+      hash: link.hash,
+      section: document.getElementById(decodeURIComponent(link.hash.slice(1)))
+    }))
+    .filter(({ section }) => section);
+
+  if (!sections.length) return;
+
+  let ticking = false;
+  const updateActiveSection = () => {
+    const anchorLine = (header?.offsetHeight || 80) + 86;
+    let activeHash = "";
+
+    sections.forEach(({ hash, section }) => {
+      const rect = section.getBoundingClientRect();
+      if (rect.top <= anchorLine && rect.bottom > anchorLine) {
+        activeHash = hash;
+      }
+    });
+
+    if (!activeHash) {
+      const passedSections = sections
+        .filter(({ section }) => section.getBoundingClientRect().top <= anchorLine);
+      const passedSection = passedSections[passedSections.length - 1];
+      activeHash = passedSection?.hash || "";
+    }
+
+    setActiveNavLink(activeHash);
+    ticking = false;
+  };
+
+  const requestUpdate = () => {
+    if (ticking) return;
+    ticking = true;
+    window.requestAnimationFrame(updateActiveSection);
+  };
+
+  requestUpdate();
+  window.addEventListener("scroll", requestUpdate, { passive: true });
+  window.addEventListener("resize", requestUpdate);
+  window.addEventListener("hashchange", requestUpdate);
+  window.addEventListener("load", requestUpdate, { once: true });
+}
+
+function setActiveNavLink(activeHash) {
+  sectionNavLinks.forEach((link) => {
+    const active = link.hash === activeHash;
+    link.classList.toggle("is-active", active);
+    if (active) {
+      link.setAttribute("aria-current", "location");
+    } else {
+      link.removeAttribute("aria-current");
+    }
+  });
+}
 
 function buildTelegramMessage(payload) {
   return [
@@ -725,7 +790,10 @@ function setupPremiumMotion() {
     ...document.querySelectorAll(".lesson-feature-grid article"),
     ...document.querySelectorAll(".result-poster"),
     ...document.querySelectorAll(".result-list p"),
-    ...document.querySelectorAll(".order-layout > *")
+    ...document.querySelectorAll(".order-layout > *"),
+    ...document.querySelectorAll(".contact-lines a"),
+    ...document.querySelectorAll(".contact-form label"),
+    ...document.querySelectorAll(".site-footer p")
   ];
 
   if (!motionTargets.length) return;
@@ -743,7 +811,10 @@ function setupPremiumMotion() {
     ".product-card",
     ".lesson-feature-grid article",
     ".result-list p",
-    ".order-layout > *"
+    ".order-layout > *",
+    ".contact-lines a",
+    ".contact-form label",
+    ".site-footer p"
   ];
 
   staggerGroups.forEach((selector) => {
